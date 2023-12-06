@@ -27,7 +27,7 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.1.0
+quixote 0.1.1
 ~~~
 
 # Example
@@ -103,8 +103,13 @@ Grade a quiz:
     {"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C","D","E","F"],"8":["A"]}
     ```
 
-```text
-$ quixote -a example/1/answers.json example/1/period-1.json
+```bash
+quixote -a example/1/answers.json example/1/period-1.json >example/1/period-1.md
+```
+
+[`period-1.md`]
+
+```md
 # Quiz 1 - Period 1
 
 Name | Score | Percentage | Grade | Wrong
@@ -133,6 +138,7 @@ F                  | 1
 # Changelog
 
 * 0.1.0 (2023-12-06): Initial release
+* 0.1.1 (2023-12-06): Save the quiz grading report to a file
 
 # Reference
 
@@ -170,4 +176,5 @@ F                  | 1
 [`answers.md`]: example/1/answers.md
 [`answers.json`]: example/1/answers.json
 [`period-1.json`]: example/1/period-1.json
+[`period-1.md`]: example/1/period-1.md
 

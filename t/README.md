@@ -78,11 +78,18 @@ Grade a quiz:
 !run:cat ../example/1/answers.json |sed 's/^/    /'
     ```
 
-```text
-$ quixote -a example/1/answers.json example/1/period-1.json
+```bash
+quixote -a example/1/answers.json example/1/period-1.json >example/1/period-1.md
 !run:../target/release/quixote \
 -a ../example/1/answers.json \
-../example/1/period-1.json
+../example/1/period-1.json \
+>../example/1/period-1.md
+```
+
+[`period-1.md`]
+
+```md
+!inc:../example/1/period-1.md
 ```
 
 !inc:../CHANGELOG.md
@@ -123,4 +130,5 @@ $ quixote -a example/1/answers.json example/1/period-1.json
 [`answers.md`]: example/1/answers.md
 [`answers.json`]: example/1/answers.json
 [`period-1.json`]: example/1/period-1.json
+[`period-1.md`]: example/1/period-1.md
 

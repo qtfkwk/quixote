@@ -20,7 +20,7 @@ Create one or more Markdown files with quiz questions and answers:
 
 * `example/src`
     * [`addition.md`]
-    * [`mulitple-answer.md`]
+    * [`multiple-answer.md`]
     * [`subtraction.md`]
     * [`word-problems.md`]
 
@@ -123,7 +123,7 @@ quixote -a example/1/answers.json example/1/period-1.json >example/1/period-1.md
 [`glob::Pattern` struct](https://docs.rs/glob/latest/glob/struct.Pattern.html).*
 
 [`addition.md`]: example/src/addition.md
-[`mulitple-answer.md`]: example/src/mulitple-answer.md
+[`multiple-answer.md`]: example/src/multiple-answer.md
 [`subtraction.md`]: example/src/subtraction.md
 [`word-problems.md`]: example/src/word-problems.md
 [`quiz.md`]: example/1/quiz.md

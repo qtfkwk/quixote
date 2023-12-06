@@ -27,7 +27,7 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.1.1
+quixote 0.1.2
 ~~~
 
 # Example
@@ -36,7 +36,7 @@ Create one or more Markdown files with quiz questions and answers:
 
 * `example/src`
     * [`addition.md`]
-    * [`mulitple-answer.md`]
+    * [`multiple-answer.md`]
     * [`subtraction.md`]
     * [`word-problems.md`]
 
@@ -139,6 +139,7 @@ F                  | 1
 
 * 0.1.0 (2023-12-06): Initial release
 * 0.1.1 (2023-12-06): Save the quiz grading report to a file
+* 0.1.2 (2023-12-06): Fix typo
 
 # Reference
 
@@ -169,7 +170,7 @@ F                  | 1
 [`glob::Pattern` struct](https://docs.rs/glob/latest/glob/struct.Pattern.html).*
 
 [`addition.md`]: example/src/addition.md
-[`mulitple-answer.md`]: example/src/mulitple-answer.md
+[`multiple-answer.md`]: example/src/multiple-answer.md
 [`subtraction.md`]: example/src/subtraction.md
 [`word-problems.md`]: example/src/word-problems.md
 [`quiz.md`]: example/1/quiz.md

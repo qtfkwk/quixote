@@ -1,0 +1,21 @@
+[package]
+name = "quixote"
+version = "0.1.0"
+edition = "2021"
+description = "Generate quizzes from Markdown"
+repository = "https://github.com/qtfkwk/quixote"
+license = "MIT"
+
+[dependencies]
+alpha-counter = "0.2.0"
+anyhow = "1.0.75"
+clap = { version = "4.4.11", features = ["derive"] }
+glob = "0.3.1"
+pulldown-cmark = "0.9.3"
+rand = "0.8.5"
+rayon = "1.8.0"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+
+[target.'cfg(unix)'.dependencies]
+pager = "0.16.1"

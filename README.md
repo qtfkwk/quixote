@@ -27,12 +27,12 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.1.2
+quixote 0.1.3
 ~~~
 
 # Example
 
-Create one or more Markdown files with quiz questions and answers:
+## Create Markdown files with questions and answers
 
 * `example/src`
     * [`addition.md`]
@@ -48,7 +48,7 @@ Create one or more Markdown files with quiz questions and answers:
   answer(s) in bold/strong.
 - Use a *rule* (`---`) between questions.
 
-Generate a quiz:
+## Generate a quiz
 
 ```bash
 quixote example/src -g example/1
@@ -61,7 +61,7 @@ quixote example/src -g example/1
 
 - The quiz includes all questions and answers, both in random order.
 - To generate a quiz from a subset of source files, use one or more paths or
-  globs to specify it; for example, to generate a quiz with only questions from
+  globs to specify it; for example, to only include questions from
   [`addition.md`] and [`subtraction.md`], the command is:
 
     ```bash
@@ -71,43 +71,43 @@ quixote example/src -g example/1
 
 - Path/glob arguments:
     - Absolute or relative path to a file or directory
-    - Use your shell's globbing
+    - Use your shell's globbing.
     - If using the `-g` option and an argument is a directory, it converts to
       `directory/**/*.md` to include all `*.md` files under `directory/`.
     - Use built-in globbing by properly quoting and/or escaping the argument so
       it is not interpreted by your shell.
       See the [reference section on globbing below](#globbing) for more details.
 
-[`glob`]: https://crates.io/crates/glob
+## Grade a quiz
 
-Grade a quiz:
+Completed quiz ([`period-1.json`]):
 
-* Completed quiz ([`period-1.json`]):
+```json
+{
+  "description":"Quiz 1 - Period 1",
+  "students":{
+    "Alvin Anderson":{"1":["A"],"2":["C"],"3":["A"],"4":["B"],"5":["A"],"6":["A"],"7":["A"],"8":["A"]},
+    "Beatrice Brown":{"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C","D","E","F"],"8":["A"]},
+    "Chris Clark":{"1":["E"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","D","E","F"],"8":["A"]},
+    "Denise Dixon":{"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C"],"8":["A"]},
+    "Erik Edwards":{"1":["E","G"],"2":["D"],"3":["B"],"4":["A"],"5":["C"],"6":["C"],"7":["A","B","C","D","E","F"],"8":["B"]}
+  }
+}
+```
 
-    ```json
-    {
-      "description":"Quiz 1 - Period 1",
-      "students":{
-        "Alvin Anderson":{"1":["A"],"2":["C"],"3":["A"],"4":["B"],"5":["A"],"6":["A"],"7":["A"],"8":["A"]},
-        "Beatrice Brown":{"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C","D","E","F"],"8":["A"]},
-        "Chris Clark":{"1":["E"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","D","E","F"],"8":["A"]},
-        "Denise Dixon":{"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C"],"8":["A"]},
-        "Erik Edwards":{"1":["E","G"],"2":["D"],"3":["B"],"4":["A"],"5":["C"],"6":["C"],"7":["A","B","C","D","E","F"],"8":["B"]}
-      }
-    }
-    ```
+Answer key ([`answers.json`]):
 
-* Answer key ([`answers.json`]):
+```json
+{"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C","D","E","F"],"8":["A"]}
+```
 
-    ```json
-    {"1":["E","G"],"2":["C"],"3":["E"],"4":["B"],"5":["C"],"6":["A"],"7":["A","B","C","D","E","F"],"8":["A"]}
-    ```
+Run:
 
 ```bash
 quixote -a example/1/answers.json example/1/period-1.json >example/1/period-1.md
 ```
 
-[`period-1.md`]
+Output ([`period-1.md`]):
 
 ```md
 # Quiz 1 - Period 1
@@ -140,6 +140,7 @@ F                  | 1
 * 0.1.0 (2023-12-06): Initial release
 * 0.1.1 (2023-12-06): Save the quiz grading report to a file
 * 0.1.2 (2023-12-06): Fix typo
+* 0.1.3 (2023-12-07): Clean up readme and code
 
 # Reference
 
@@ -165,9 +166,9 @@ F                  | 1
   The `-` character can be specified inside a character sequence pattern by
   placing it at the start or the end, e.g. `[abc-]`.
 
-*See also `glob` on [`crates.io`](https://crates.io/crates/glob),
-[`docs.rs`](https://docs.rs/glob), or specifically the documentation for the
-[`glob::Pattern` struct](https://docs.rs/glob/latest/glob/struct.Pattern.html).*
+Source: [Documentation for the `glob::Pattern` struct]
+
+*See also `glob` on [`crates.io`][`glob`] or [`docs.rs`](https://docs.rs/glob).*
 
 [`addition.md`]: example/src/addition.md
 [`multiple-answer.md`]: example/src/multiple-answer.md
@@ -178,4 +179,7 @@ F                  | 1
 [`answers.json`]: example/1/answers.json
 [`period-1.json`]: example/1/period-1.json
 [`period-1.md`]: example/1/period-1.md
+
+[`glob`]: https://crates.io/crates/glob
+[Documentation for the `glob::Pattern` struct]: https://docs.rs/glob/latest/glob/struct.Pattern.html
 

@@ -6,8 +6,6 @@ use rand::{seq::SliceRandom, thread_rng};
 use rayon::prelude::*;
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::fs::File;
-use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 //--------------------------------------------------------------------------------------------------
@@ -22,34 +20,9 @@ fn answer_counter() -> AlphaCounter {
 //--------------------------------------------------------------------------------------------------
 
 /**
-Helper function to write string content to a file
-*/
-pub fn write_file(path: &Path, data: &str) -> Result<()> {
-    let f = File::create(path)?;
-    let mut f = BufWriter::new(f);
-    f.write_all(data.as_bytes())?;
-    Ok(())
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
 Calculate basic statistics on a slice of f32 numbers
-
-```
-use quixote::f32_stats;
-
-let (min, max, mean, sum, count) =
-    f32_stats(&[1.0, 2.0, 3.0, 3.2, 4.7, 5.5, 1.0]);
-
-assert_eq!(min, 1.0);
-assert_eq!(max, 5.5);
-assert_eq!(mean, 2.9142857);
-assert_eq!(sum, 20.4);
-assert_eq!(count, 7);
-```
 */
-pub fn f32_stats(v: &[f32]) -> (f32, f32, f32, f32, usize) {
+fn f32_stats(v: &[f32]) -> (f32, f32, f32, f32, usize) {
     let count = v.len();
     let mut sum = v[0];
     let mut min = v[0];
@@ -567,8 +540,8 @@ Name | Score | Percentage | Grade | Wrong
         }
 
         let scores_keys = scores.keys().collect::<Vec<_>>();
-        let (min_pct, max_pct, mean_pct, ..) = f32_stats(&pcts);
-        let mean_score = (scores_sum as f32) / (pcts.len() as f32);
+        let (min_pct, max_pct, mean_pct, _sum, count) = f32_stats(&pcts);
+        let mean_score = (scores_sum as f32) / (count as f32);
         r.push(format!(
             "\n\
 Description        | Value

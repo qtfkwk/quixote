@@ -1,7 +1,9 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use quixote::{write_file, Answers, Bank, Class};
-use std::path::PathBuf;
+use quixote::*;
+use std::fs::File;
+use std::io::{BufWriter, Write};
+use std::path::{Path, PathBuf};
 
 #[cfg(unix)]
 use pager::Pager;
@@ -123,5 +125,14 @@ fn main() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+//--------------------------------------------------------------------------------------------------
+
+fn write_file(path: &Path, data: &str) -> Result<()> {
+    let f = File::create(path)?;
+    let mut f = BufWriter::new(f);
+    f.write_all(data.as_bytes())?;
     Ok(())
 }

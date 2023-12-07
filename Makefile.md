@@ -1,7 +1,6 @@
 # build
 
 * clippy
-* test
 * `README.md`
 
 ```

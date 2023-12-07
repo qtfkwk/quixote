@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use quixote::*;
-use std::fs::File;
-use std::io::{BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+    path::{Path, PathBuf},
+};
 
 #[cfg(unix)]
 use pager::Pager;
@@ -17,7 +19,7 @@ const README: &str = include_str!("../../README.md");
 #[derive(Parser)]
 #[clap(
     about = "\
-Generate quizzes from Markdown
+Quizzes and tests in Markdown
 
 <https://crates.io/crates/quixote> / <https://github.com/qtfkwk/quixote>
 
@@ -31,21 +33,24 @@ struct Cli {
     #[arg(short, hide = true)]
     debug: bool,
 
-    /// Generate one or more quizzes
-    #[arg(short, value_name = "DIRECTORY")]
-    generate_quizzes: Vec<PathBuf>,
+    /// Generate quiz(zes)
+    #[arg(short, value_name = "PATH")]
+    quizzes: Vec<PathBuf>,
 
-    /// Grade completed quiz(zes)
+    /// Grade quiz(zes)
     #[arg(short, value_name = "answers.json")]
-    answers_json: Option<PathBuf>,
+    answers: Option<PathBuf>,
+
+    /// Disable randomization
+    #[arg(short = 'R', hide = true)]
+    no_random: bool,
 
     /// Print readme
     #[arg(short)]
     readme: bool,
 
-    /// One or more paths/globs
     #[arg(value_name = "PATH/GLOB")]
-    input_files: Vec<PathBuf>,
+    arguments: Vec<PathBuf>,
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -62,10 +67,10 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    // Grade against answers.json
-    if let Some(answers_json) = &cli.answers_json {
-        let answers = Answers::from(answers_json)?;
-        for path in &cli.input_files {
+    // Grade quiz(zes)
+    if let Some(json) = &cli.answers {
+        let answers = Answers::from(json)?;
+        for path in &cli.arguments {
             let mut class = Class::from(path)?;
             class.grade(&answers);
             println!("{}", class.markdown());
@@ -73,23 +78,27 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    // Must have `-g` option (or `-d`)...
-    if !cli.debug && cli.generate_quizzes.is_empty() {
-        return Err(anyhow!("Please provide a quiz path via the `-g` option"));
+    // Must have `-q` option (or `-d`)...
+    if !cli.debug && cli.quizzes.is_empty() {
+        return Err(anyhow!("Please provide a quiz path via the `-q` option"));
     }
 
     // Create quiz directories
     let quizzes = cli
-        .generate_quizzes
+        .quizzes
         .iter()
         .map(|x| {
-            if !x.exists() {
-                std::fs::create_dir_all(x)?;
-            }
-            if x.is_dir() {
+            if cli.debug {
                 Ok(x)
             } else {
-                Err(anyhow!(format!("`{}`", x.display())))
+                if !x.exists() {
+                    std::fs::create_dir_all(x)?;
+                }
+                if x.is_dir() {
+                    Ok(x)
+                } else {
+                    Err(anyhow!(format!("`{}`", x.display())))
+                }
             }
         })
         .collect::<Vec<_>>();
@@ -107,21 +116,30 @@ fn main() -> Result<()> {
     let quizzes: Vec<_> = quizzes.into_iter().map(|x| x.unwrap()).collect();
 
     // Create question bank
-    let bank = Bank::new(&cli.input_files)?;
+    let bank = Bank::new(&cli.arguments)?;
     if cli.debug {
+        #[cfg(unix)]
+        Pager::with_pager("bat -pl rust").setup();
+
         println!("{bank:#?}\n");
     }
 
     // Generate quiz(zes)
     for dir in &quizzes {
-        let quiz = bank.quiz();
+        let quiz = bank.quiz(!cli.no_random);
+        let answers = quiz.answers();
         if cli.debug {
             println!("{quiz:#?}\n");
+            println!("{answers:#?}\n");
         } else {
-            let (answers, answers_md) = quiz.answers();
-            write_file(&dir.join("quiz.md"), &quiz.markdown())?;
-            write_file(&dir.join("answers.md"), &answers_md)?;
-            write_file(&dir.join("answers.json"), &answers.to_string())?;
+            let answers = quiz.answers();
+            for (filename, content) in [
+                ("quiz.md", &quiz.markdown()),
+                ("answers.md", answers.markdown().as_ref().unwrap()),
+                ("answers.md", &answers.json()),
+            ] {
+                write_file(&dir.join(filename), content)?;
+            }
         }
     }
 

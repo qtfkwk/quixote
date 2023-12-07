@@ -1,7 +1,3 @@
-# About
-
-Generate quizzes from Markdown
-
 # Usage
 
 ~~~text
@@ -35,7 +31,7 @@ $ quixote -V
 ## Generate a quiz
 
 ```bash
-quixote example/src -g example/1
+quixote example/src -q example/1
 ```
 
 * `example/1`
@@ -50,13 +46,13 @@ quixote example/src -g example/1
 
     ```bash
     quixote example/src/addition.md example/src/subtraction.md \\
-    -g example/addition-subraction
+    -q example/addition-subtraction
     ```
 
 - Path/glob arguments:
     - Absolute or relative path to a file or directory
     - Use your shell's globbing.
-    - If using the `-g` option and an argument is a directory, it converts to
+    - If using the `-q` option and an argument is a directory, it converts to
       `directory/**/*.md` to include all `*.md` files under `directory/`.
     - Use built-in globbing by properly quoting and/or escaping the argument so
       it is not interpreted by your shell.
@@ -79,11 +75,10 @@ Answer key ([`answers.json`]):
 Run:
 
 ```bash
-quixote -a example/1/answers.json example/1/period-1.json >example/1/period-1.md
-!run:../target/release/quixote \
--a ../example/1/answers.json \
-../example/1/period-1.json \
->../example/1/period-1.md
+quixote -a example/1/answers.json example/1/period-1.json \\
+>example/1/period-1.md
+!run:../target/release/quixote -a ../example/1/answers.json \
+../example/1/period-1.json >../example/1/period-1.md
 ```
 
 Output ([`period-1.md`]):

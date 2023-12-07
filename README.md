@@ -1,12 +1,8 @@
-# About
-
-Generate quizzes from Markdown
-
 # Usage
 
 ~~~text
 $ quixote -h
-Generate quizzes from Markdown
+Quizzes and tests in Markdown
 
 <https://crates.io/crates/quixote> / <https://github.com/qtfkwk/quixote>
 
@@ -15,11 +11,11 @@ Generate quizzes from Markdown
 Usage: quixote [OPTIONS] [PATH/GLOB]...
 
 Arguments:
-  [PATH/GLOB]...  One or more paths/globs
+  [PATH/GLOB]...  
 
 Options:
-  -g <DIRECTORY>         Generate one or more quizzes
-  -a <answers.json>      Grade completed quiz(zes)
+  -q <PATH>              Generate quiz(zes)
+  -a <answers.json>      Grade quiz(zes)
   -r                     Print readme
   -h, --help             Print help
   -V, --version          Print version
@@ -27,7 +23,7 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.1.3
+quixote 0.2.0
 ~~~
 
 # Example
@@ -51,7 +47,7 @@ quixote 0.1.3
 ## Generate a quiz
 
 ```bash
-quixote example/src -g example/1
+quixote example/src -q example/1
 ```
 
 * `example/1`
@@ -66,13 +62,13 @@ quixote example/src -g example/1
 
     ```bash
     quixote example/src/addition.md example/src/subtraction.md \
-    -g example/addition-subraction
+    -q example/addition-subtraction
     ```
 
 - Path/glob arguments:
     - Absolute or relative path to a file or directory
     - Use your shell's globbing.
-    - If using the `-g` option and an argument is a directory, it converts to
+    - If using the `-q` option and an argument is a directory, it converts to
       `directory/**/*.md` to include all `*.md` files under `directory/`.
     - Use built-in globbing by properly quoting and/or escaping the argument so
       it is not interpreted by your shell.
@@ -104,7 +100,8 @@ Answer key ([`answers.json`]):
 Run:
 
 ```bash
-quixote -a example/1/answers.json example/1/period-1.json >example/1/period-1.md
+quixote -a example/1/answers.json example/1/period-1.json \
+>example/1/period-1.md
 ```
 
 Output ([`period-1.md`]):
@@ -112,35 +109,37 @@ Output ([`period-1.md`]):
 ```md
 # Quiz 1 - Period 1
 
-Name | Score | Percentage | Grade | Wrong
------|------:|-----------:|-------|-------
-Beatrice Brown | 14 | 100.0% | A | none
-Chris Clark | 12 | 85.7% | B | 1, 7
-Denise Dixon | 11 | 78.6% | C | 7
-Erik Edwards | 9 | 64.3% | D | 2, 3, 4, 6, 8
-Alvin Anderson | 4 | 28.6% | F | 1, 3, 5, 7
+| Name           | Score | Percent | Grade | Wrong         |
+|----------------|------:|--------:|-------|---------------|
+| Beatrice Brown |    14 |  100.0% | A     |               |
+| Chris Clark    |    12 |   85.7% | B     | 1, 7          |
+| Denise Dixon   |    11 |   78.6% | C     | 7             |
+| Erik Edwards   |     9 |   64.3% | D     | 2, 3, 4, 6, 8 |
+| Alvin Anderson |     4 |   28.6% | F     | 1, 3, 5, 7    |
 
-Description        | Value
--------------------|------------
-Number of problems | 8
-Total points       | 14
-High score         | 14 (100.0%)
-Low score          | 4 (28.6%)
-Mean score         | 10.0 (71.4%)
-A                  | 1
-B                  | 1
-C                  | 1
-D                  | 1
-F                  | 1
+| Description         | Value         |
+|---------------------|---------------|
+| Number of questions | 8             |
+| Total points        | 14            |
+| High score          | 14, 100.0%, A |
+| Low score           | 4, 28.6%, F   |
+| Mean score          | 10, 71.4%, C  |
+| A                   | 1             |
+| B                   | 1             |
+| C                   | 1             |
+| D                   | 1             |
+| F                   | 1             |
 
 ```
 
 # Changelog
 
 * 0.1.0 (2023-12-06): Initial release
-* 0.1.1 (2023-12-06): Save the quiz grading report to a file
-* 0.1.2 (2023-12-06): Fix typo
-* 0.1.3 (2023-12-07): Clean up readme and code
+    * 0.1.1 (2023-12-06): Save the quiz grading report to a file
+    * 0.1.2 (2023-12-06): Fix typo
+    * 0.1.3 (2023-12-07): Clean up readme and code
+* 0.2.0 (2023-12-07): Streamline design: `-g` is now `-q`, improved tables;
+  debug: bat pager, don't create quiz directories; fix typo
 
 # Reference
 

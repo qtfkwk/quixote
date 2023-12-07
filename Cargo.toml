@@ -1,8 +1,8 @@
 [package]
 name = "quixote"
-version = "0.1.3"
+version = "0.2.0"
 edition = "2021"
-description = "Generate quizzes from Markdown"
+description = "Quizzes and tests in Markdown"
 repository = "https://github.com/qtfkwk/quixote"
 license = "MIT"
 

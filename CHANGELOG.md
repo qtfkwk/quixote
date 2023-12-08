@@ -6,4 +6,6 @@
     * 0.1.3 (2023-12-07): Clean up readme and code
 * 0.2.0 (2023-12-07): Streamline design: `-g` is now `-q`, improved tables;
   debug: bat pager, don't create quiz directories; fix typo
+* 0.3.0 (2023-12-08): Change answers list to a task list; miscellaneous
+  optimizations and code clean up; improved example; update dependencies
 

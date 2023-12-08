@@ -11,33 +11,8 @@ use std::path::{Path, PathBuf};
 //--------------------------------------------------------------------------------------------------
 
 /**
-Create a counter to use for "numbering" the answers
+Letter grade scale
 */
-fn answer_counter() -> AlphaCounter {
-    AlphaCounter::upper(0)
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
-Calculate basic statistics on a slice of f32 numbers
-*/
-fn f32_stats(v: &[f32]) -> (f32, f32, f32, f32, usize) {
-    let count = v.len();
-    let mut sum = v[0];
-    let mut min = v[0];
-    let mut max = v[0];
-    for i in v.iter().skip(1) {
-        sum += i;
-        min = min.min(*i);
-        max = max.max(*i);
-    }
-    let mean = sum / (count as f32);
-    (min, max, mean, sum, count)
-}
-
-//--------------------------------------------------------------------------------------------------
-
 const LETTER_GRADES: [(f32, char); 5] = [
     (90.0, 'A'),
     (80.0, 'B'),
@@ -45,6 +20,8 @@ const LETTER_GRADES: [(f32, char); 5] = [
     (60.0, 'D'),
     (0.0, 'F'),
 ];
+
+//--------------------------------------------------------------------------------------------------
 
 /**
 Get the letter grade for a percentage score
@@ -65,6 +42,97 @@ fn letter_grade(pct: f32) -> char {
 //--------------------------------------------------------------------------------------------------
 
 /**
+Create a counter to use for "numbering" the answers
+*/
+fn answer_counter() -> AlphaCounter {
+    AlphaCounter::upper(0)
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+Calculate basic statistics
+
+```text
+let (min, max, mean, sum, count) = stats(&[1.0, 2.0, ...]);
+```
+*/
+fn calc_stats(v: &[f32]) -> (f32, f32, f32, f32, usize) {
+    let mut min = v[0];
+    let mut max = v[0];
+    let mut sum = v[0];
+    for i in v.iter().skip(1) {
+        min = min.min(*i);
+        max = max.max(*i);
+        sum += i;
+    }
+    let count = v.len();
+    let mean = sum / (count as f32);
+    (min, max, mean, sum, count)
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+Get the maximum width of each column
+*/
+fn max_col_widths(rows: &[Vec<String>]) -> Vec<usize> {
+    let mut r = rows[0].iter().map(|_| 0).collect::<Vec<_>>();
+    for row in rows.iter() {
+        for (i, cell) in row.iter().enumerate() {
+            r[i] = r[i].max(cell.chars().collect::<Vec<_>>().len());
+        }
+    }
+    r
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+Generate a markdown table
+*/
+fn md_table(rows: &[Vec<String>], right: &[usize]) -> String {
+    let widths = max_col_widths(rows);
+    let mut r = vec![];
+    for (i, row) in rows.iter().enumerate() {
+        let mut s = vec![];
+        for (j, cell) in row.iter().enumerate() {
+            let sep = if j == 0 { "" } else { " | " };
+            s.push(if right.contains(&j) {
+                format!("{sep}{cell:>0$}", widths[j])
+            } else {
+                format!("{sep}{cell:<0$}", widths[j])
+            });
+        }
+        r.push(format!("| {} |\n", s.join("")));
+        if i == 0 {
+            let mut s = vec![];
+            for (j, _cell) in row.iter().enumerate() {
+                s.push(format!(
+                    "{}{}{}",
+                    if j == 0 { "" } else { "|-" },
+                    "-".repeat(widths[j]),
+                    if right.contains(&j) { ':' } else { '-' }
+                ));
+            }
+            r.push(format!("|-{}|\n", s.join("")));
+        }
+    }
+    r.join("")
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+Convert a percentage to a string uniformly
+*/
+fn fmt_percent(pct: f32) -> String {
+    format!("{pct:.1}%")
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
 Question bank
 */
 #[derive(Debug)]
@@ -74,7 +142,7 @@ pub struct Bank {
 
 impl Bank {
     /**
-    Create a new [`Bank`] from one or more paths / globs
+    Create a new question bank from one or more paths / globs
     */
     pub fn new(input_files: &[PathBuf]) -> Result<Bank> {
         // Glob out input files
@@ -96,15 +164,15 @@ impl Bank {
                 }
             })
             .collect::<Vec<_>>();
-        let errors: Vec<_> = input_files
-            .iter()
-            .filter_map(|x| x.as_ref().err())
-            .collect();
-        if !errors.is_empty() {
-            let errors: Vec<_> = errors.iter().map(|x| x.to_string()).collect();
+        if input_files.par_iter().any(|x| x.is_err()) {
             return Err(anyhow!(format!(
                 "Arguments did not resolve to any files: {}!",
-                errors.join(", ")
+                input_files
+                    .iter()
+                    .filter_map(|x| x.as_ref().err())
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
             )));
         }
         let input_files: Vec<_> = input_files.into_iter().flat_map(|x| x.unwrap()).collect();
@@ -154,20 +222,24 @@ impl Bank {
                 }
             })
             .collect();
-        let errors: Vec<_> = questions.iter().filter_map(|x| x.as_ref().err()).collect();
-        if errors.is_empty() {
-            let questions = questions
-                .iter()
-                .flat_map(|x| x.as_ref().unwrap())
-                .cloned()
-                .collect();
-            Ok(Bank { questions })
-        } else {
-            let errors: Vec<_> = errors.iter().map(|x| x.to_string()).collect();
+        if questions.par_iter().any(|x| x.is_err()) {
             Err(anyhow!(format!(
                 "Could not read files: {}!",
-                errors.join(", ")
+                questions
+                    .iter()
+                    .filter_map(|x| x.as_ref().err())
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "),
             )))
+        } else {
+            Ok(Bank {
+                questions: questions
+                    .iter()
+                    .flat_map(|x| x.as_ref().unwrap())
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            })
         }
     }
 
@@ -192,7 +264,7 @@ pub struct Question {
 
 impl Question {
     /**
-    Create a [`Question`]
+    Create a new quiz question
     */
     fn new(content: &[String]) -> Question {
         let mut content = content.to_vec();
@@ -237,7 +309,7 @@ struct Answer {
 
 impl Answer {
     /**
-    Create an [`Answer`]
+    Create a new quiz answer
     */
     fn new(content: &str) -> Answer {
         if (content.starts_with("**") && content.ends_with("**"))
@@ -268,14 +340,18 @@ pub struct Quiz {
 
 impl Quiz {
     /**
-    Create a new [`Quiz`]
+    Create a new quiz
     */
     fn new(questions: &[Question], shuffle: bool) -> Quiz {
         let mut questions = questions.to_vec();
 
         if shuffle {
             let mut rng = thread_rng();
+
+            // Randomize questions
             questions.shuffle(&mut rng);
+
+            // Randomize answers
             questions
                 .iter_mut()
                 .for_each(|x| x.answers.shuffle(&mut rng));
@@ -289,7 +365,7 @@ impl Quiz {
     */
     pub fn markdown(&self) -> String {
         self.questions
-            .iter()
+            .par_iter()
             .enumerate()
             .map(|(i, x)| {
                 let mut c = answer_counter();
@@ -304,7 +380,7 @@ impl Quiz {
                         .join(&sep),
                     x.answers
                         .iter()
-                        .map(|x| format!("    * {}) {}\n\n", c.next().unwrap(), x.content))
+                        .map(|x| format!("    * [ ] {}. {}\n\n", c.next().unwrap(), x.content))
                         .collect::<Vec<_>>()
                         .join("")
                 )
@@ -324,13 +400,14 @@ impl Quiz {
 //--------------------------------------------------------------------------------------------------
 
 /**
-Quiz answers
+Quiz answer key
 
 This struct is used in two ways:
 
-1. Generated via [`Quiz.answers()`] during quiz generation in order to generate
-   content for the `answers.json` and `answers.md` files
-2. Loaded from a saved `answers.json` file for grading a quiz
+1. Generated via [`Quiz::answers()`] during quiz generation in order to generate
+   content for the answer key (`answers.json`) and quiz with answers
+   (`answers.md`) files
+2. Loaded from a saved answer key (`answers.json`) for grading a quiz
 */
 #[derive(Debug)]
 pub struct Answers {
@@ -339,10 +416,13 @@ pub struct Answers {
 }
 
 impl Answers {
+    /**
+    Create a new quiz answer key
+    */
     fn new(quiz: &Quiz) -> Answers {
         let answers: BTreeMap<usize, Vec<String>> = quiz
             .questions
-            .iter()
+            .par_iter()
             .enumerate()
             .map(|(i, x)| {
                 let mut c = answer_counter();
@@ -365,7 +445,7 @@ impl Answers {
 
         let markdown = Some(
             quiz.questions
-                .iter()
+                .par_iter()
                 .enumerate()
                 .map(|(i, x)| {
                     let mut c = answer_counter();
@@ -385,9 +465,9 @@ impl Answers {
                             .map(|x| {
                                 let letter = c.next().unwrap();
                                 if ans.contains(&letter) {
-                                    format!("    * **{letter}) {}**\n\n", x.content)
+                                    format!("    * [X] **{letter}. {}**\n\n", x.content)
                                 } else {
-                                    format!("    * {letter}) {}\n\n", x.content)
+                                    format!("    * [ ] {letter}. {}\n\n", x.content)
                                 }
                             })
                             .collect::<Vec<_>>()
@@ -402,7 +482,7 @@ impl Answers {
     }
 
     /**
-    Load [`Answers`] from a JSON file
+    Load from a JSON file
     */
     pub fn from(path: &Path) -> Result<Answers> {
         Ok(Answers {
@@ -469,7 +549,7 @@ pub struct Class {
 
 impl Class {
     /**
-    Load a [`Class`] from a JSON file
+    Load from a JSON file
     */
     pub fn from(path: &Path) -> Result<Class> {
         let class: Class = serde_json::from_str(&std::fs::read_to_string(path)?)?;
@@ -529,21 +609,7 @@ impl Class {
         let mut scores_sum = 0;
         let mut wrongs: BTreeMap<&str, &[usize]> = BTreeMap::new();
         for (name, (score, wrong)) in &self.scores {
-            wrongs.insert(
-                name,
-                wrong,
-                /*
-                if wrong.is_empty() {
-                    String::from("none")
-                } else {
-                    wrong
-                        .iter()
-                        .map(|x| x.to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                },
-                */
-            );
+            wrongs.insert(name, wrong);
             if let Some(students) = scores.get_mut(score) {
                 students.push(name);
             } else {
@@ -571,39 +637,46 @@ impl Class {
 
         let mut stats = Stats::new();
         let scores_keys = scores.keys().collect::<Vec<_>>();
-        let (min_pct, max_pct, mean_pct, _sum, count) = f32_stats(&pcts);
-        let mean_score = (scores_sum as f32) / (count as f32);
-        stats.push(Stat::new(
-            "Number of questions",
-            &self.questions.to_string(),
-        ));
-        stats.push(Stat::new("Total points", &self.total.to_string()));
-        stats.push(Stat::new(
-            "High score",
-            &format!(
-                "{}, {max_pct:.1}%, {}",
-                scores_keys.last().unwrap(),
-                letter_grade(max_pct),
+        let (min_pct, max_pct, _mean_pct, _sum, count) = calc_stats(&pcts);
+        let mean_score = ((scores_sum as f32) / (count as f32) + 0.5) as usize;
+        let mean_pct = (mean_score as f32) / (self.total as f32) * 100.0;
+        let n_students = self.students.len();
+        for (description, value, percent, grade) in [
+            ("Number of students", &n_students.to_string(), "", ""),
+            ("Number of questions", &self.questions.to_string(), "", ""),
+            ("Total points", &self.total.to_string(), "", ""),
+            (
+                "High score",
+                &scores_keys.last().unwrap().to_string(),
+                &fmt_percent(max_pct),
+                &letter_grade(max_pct).to_string(),
             ),
-        ));
-        stats.push(Stat::new(
-            "Low score",
-            &format!(
-                "{}, {min_pct:.1}%, {}",
-                scores_keys.first().unwrap(),
-                letter_grade(min_pct),
+            (
+                "Low score",
+                &scores_keys.first().unwrap().to_string(),
+                &fmt_percent(min_pct),
+                &letter_grade(min_pct).to_string(),
             ),
-        ));
-        stats.push(Stat::new(
-            "Mean score",
-            &format!("{mean_score}, {mean_pct:.1}%, {}", letter_grade(mean_pct)),
-        ));
+            (
+                "Mean score",
+                &mean_score.to_string(),
+                &fmt_percent(mean_pct),
+                &letter_grade(mean_pct).to_string(),
+            ),
+        ] {
+            stats.push(Stat::new(description, value, percent, grade));
+        }
         for (letter, count) in grades.histogram() {
-            stats.push(Stat::new(&letter.to_string(), &count.to_string()));
+            stats.push(Stat::new(
+                &letter.to_string(),
+                &count.to_string(),
+                &fmt_percent((count as f32) / (n_students as f32) * 100.0),
+                "",
+            ));
         }
 
         format!(
-            "# {}\n\n{}\n\n{}\n\n",
+            "# {}\n\n{}\n{}",
             self.description,
             grades.markdown(),
             stats.markdown()
@@ -613,6 +686,9 @@ impl Class {
 
 //--------------------------------------------------------------------------------------------------
 
+/**
+Individual grade in a [`Grades`] table
+*/
 struct Grade {
     name: String,
     score: usize,
@@ -622,6 +698,9 @@ struct Grade {
 }
 
 impl Grade {
+    /**
+    Create an individual grade
+    */
     fn new(name: &str, score: usize, pct: f32, grade: char, wrong: &[usize]) -> Grade {
         Grade {
             name: name.to_string(),
@@ -632,11 +711,14 @@ impl Grade {
         }
     }
 
-    fn markdown(&self) -> Vec<String> {
+    /**
+    Generate the table row
+    */
+    fn row(&self) -> Vec<String> {
         vec![
             self.name.clone(),
             self.score.to_string(),
-            format!("{:.1}%", self.pct),
+            fmt_percent(self.pct),
             self.grade.to_string(),
             self.wrong
                 .iter()
@@ -647,28 +729,45 @@ impl Grade {
     }
 }
 
+//--------------------------------------------------------------------------------------------------
+
+/**
+Grades table for a completed quiz ([`Class`])
+*/
 struct Grades {
     grades: Vec<Grade>,
 }
 
 impl Grades {
+    /**
+    Create a new grades table
+    */
     fn new() -> Grades {
         Grades { grades: vec![] }
     }
 
+    /**
+    Add an individual grade
+    */
     fn push(&mut self, grade: Grade) {
         self.grades.push(grade);
     }
 
+    /**
+    Generate a markdown table
+    */
     fn markdown(&self) -> String {
-        let mut rows = vec!["Name,Score,Percent,Grade,Wrong"
+        let mut rows = vec!["Name,Score,Percent,Grade,Questions"
             .split(',')
             .map(|x| x.to_string())
             .collect::<Vec<_>>()];
-        rows.append(&mut self.grades.iter().map(|x| x.markdown()).collect::<Vec<_>>());
+        rows.append(&mut self.grades.iter().map(|x| x.row()).collect::<Vec<_>>());
         md_table(&rows, &[1, 2])
     }
 
+    /**
+    Compute the histogram data
+    */
     fn histogram(&self) -> BTreeMap<char, usize> {
         let mut r = LETTER_GRADES
             .iter()
@@ -683,85 +782,75 @@ impl Grades {
 
 //--------------------------------------------------------------------------------------------------
 
+/**
+Individual statistic in the summary table ([`Stats`])
+*/
 struct Stat {
     description: String,
     value: String,
+    percent: String,
+    grade: String,
 }
 
 impl Stat {
-    fn new(description: &str, value: &str) -> Stat {
+    /**
+    Create a new statistic
+    */
+    fn new(description: &str, value: &str, percent: &str, grade: &str) -> Stat {
         Stat {
             description: description.to_string(),
             value: value.to_string(),
+            percent: percent.to_string(),
+            grade: grade.to_string(),
         }
     }
 
-    fn markdown(&self) -> Vec<String> {
-        vec![self.description.clone(), self.value.clone()]
-    }
-}
-
-struct Stats {
-    stats: Vec<Stat>,
-}
-
-impl Stats {
-    fn new() -> Stats {
-        Stats { stats: vec![] }
-    }
-
-    fn push(&mut self, stat: Stat) {
-        self.stats.push(stat);
-    }
-
-    fn markdown(&self) -> String {
-        let mut rows = vec!["Description,Value"
-            .split(',')
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()];
-        rows.append(&mut self.stats.iter().map(|x| x.markdown()).collect::<Vec<_>>());
-        md_table(&rows, &[])
+    /**
+    Generate the table row
+    */
+    fn row(&self) -> Vec<String> {
+        vec![
+            self.description.clone(),
+            self.value.clone(),
+            self.percent.clone(),
+            self.grade.clone(),
+        ]
     }
 }
 
 //--------------------------------------------------------------------------------------------------
 
-fn measure(rows: &[Vec<String>]) -> Vec<usize> {
-    let mut r = rows[0].iter().map(|_| 0).collect::<Vec<_>>();
-    for row in rows.iter() {
-        for (i, cell) in row.iter().enumerate() {
-            r[i] = r[i].max(cell.chars().collect::<Vec<_>>().len());
-        }
-    }
-    r
+/**
+Summary table for a completed quiz ([`Class`])
+*/
+struct Stats {
+    stats: Vec<Stat>,
 }
 
-fn md_table(rows: &[Vec<String>], right: &[usize]) -> String {
-    let widths = measure(rows);
-    let mut r = vec![];
-    for (i, row) in rows.iter().enumerate() {
-        let mut s = vec![];
-        for (j, cell) in row.iter().enumerate() {
-            let sep = if j == 0 { "" } else { " | " };
-            s.push(if right.contains(&j) {
-                format!("{sep}{cell:>0$}", widths[j])
-            } else {
-                format!("{sep}{cell:<0$}", widths[j])
-            });
-        }
-        r.push(format!("| {} |\n", s.join("")));
-        if i == 0 {
-            let mut s = vec![];
-            for (j, _cell) in row.iter().enumerate() {
-                s.push(format!(
-                    "{}{}{}",
-                    if j == 0 { "" } else { "|-" },
-                    "-".repeat(widths[j]),
-                    if right.contains(&j) { ':' } else { '-' }
-                ));
-            }
-            r.push(format!("|-{}|\n", s.join("")));
-        }
+impl Stats {
+    /**
+    Create a new summary table
+    */
+    fn new() -> Stats {
+        Stats { stats: vec![] }
     }
-    r.join("")
+
+    /**
+    Add an individual statistic
+    */
+    fn push(&mut self, stat: Stat) {
+        self.stats.push(stat);
+    }
+
+    /**
+    Generate a markdown table
+    */
+    fn markdown(&self) -> String {
+        let mut rows = vec!["Description,Value,Percent,Grade"
+            .split(',')
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()];
+        rows.append(&mut self.stats.iter().map(|x| x.row()).collect::<Vec<_>>());
+        md_table(&rows, &[])
+    }
 }

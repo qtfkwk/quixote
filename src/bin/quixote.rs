@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use quixote::*;
+use rayon::prelude::*;
 use std::{
     fs::File,
     io::{BufWriter, Write},
@@ -86,7 +87,7 @@ fn main() -> Result<()> {
     // Create quiz directories
     let quizzes = cli
         .quizzes
-        .iter()
+        .par_iter()
         .map(|x| {
             if cli.debug {
                 Ok(x)
@@ -102,12 +103,12 @@ fn main() -> Result<()> {
             }
         })
         .collect::<Vec<_>>();
-    let errors: Vec<_> = quizzes.iter().filter_map(|x| x.as_ref().err()).collect();
-    if !errors.is_empty() {
+    if quizzes.par_iter().any(|x| x.is_err()) {
         return Err(anyhow!(format!(
             "Could not use arguments as quiz directories: {}",
-            errors
+            quizzes
                 .iter()
+                .filter_map(|x| x.as_ref().err())
                 .map(|x| x.to_string())
                 .collect::<Vec<_>>()
                 .join(", "),
@@ -133,12 +134,24 @@ fn main() -> Result<()> {
             println!("{answers:#?}\n");
         } else {
             let answers = quiz.answers();
-            for (filename, content) in [
+            let files = [
                 ("quiz.md", &quiz.markdown()),
                 ("answers.md", answers.markdown().as_ref().unwrap()),
-                ("answers.md", &answers.json()),
-            ] {
-                write_file(&dir.join(filename), content)?;
+                ("answers.json", &answers.json()),
+            ]
+            .par_iter()
+            .map(|(filename, content)| write_file(&dir.join(filename), content))
+            .collect::<Vec<_>>();
+            if files.par_iter().any(|x| x.is_err()) {
+                return Err(anyhow!(format!(
+                    "Failed to write all files:\n{}",
+                    files
+                        .iter()
+                        .filter_map(|x| x.as_ref().err())
+                        .map(|x| format!("* {x}\n"))
+                        .collect::<Vec<_>>()
+                        .join("")
+                )));
             }
         }
     }

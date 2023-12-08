@@ -851,6 +851,6 @@ impl Stats {
             .map(|x| x.to_string())
             .collect::<Vec<_>>()];
         rows.append(&mut self.stats.iter().map(|x| x.row()).collect::<Vec<_>>());
-        md_table(&rows, &[])
+        md_table(&rows, &[1, 2])
     }
 }

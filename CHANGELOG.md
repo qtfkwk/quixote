@@ -8,4 +8,5 @@
   debug: bat pager, don't create quiz directories; fix typo
 * 0.3.0 (2023-12-08): Change answers list to a task list; miscellaneous
   optimizations and code clean up; improved example; update dependencies
+    * 0.3.1 (2023-12-08): Right align value and percent columns in summary table
 

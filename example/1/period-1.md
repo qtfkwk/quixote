@@ -30,16 +30,16 @@
 | Kelly Kennedy      |     3 |   21.4% | F     | 1, 6, 7, 8          |
 
 | Description         | Value | Percent | Grade |
-|---------------------|-------|---------|-------|
-| Number of students  | 26    |         |       |
-| Number of questions | 8     |         |       |
-| Total points        | 14    |         |       |
-| High score          | 14    | 100.0%  | A     |
-| Low score           | 3     | 21.4%   | F     |
-| Mean score          | 11    | 78.6%   | C     |
-| A                   | 15    | 57.7%   |       |
-| B                   | 2     | 7.7%    |       |
-| C                   | 2     | 7.7%    |       |
-| D                   | 1     | 3.8%    |       |
-| F                   | 6     | 23.1%   |       |
+|---------------------|------:|--------:|-------|
+| Number of students  |    26 |         |       |
+| Number of questions |     8 |         |       |
+| Total points        |    14 |         |       |
+| High score          |    14 |  100.0% | A     |
+| Low score           |     3 |   21.4% | F     |
+| Mean score          |    11 |   78.6% | C     |
+| A                   |    15 |   57.7% |       |
+| B                   |     2 |    7.7% |       |
+| C                   |     2 |    7.7% |       |
+| D                   |     1 |    3.8% |       |
+| F                   |     6 |   23.1% |       |
 

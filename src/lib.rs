@@ -79,8 +79,8 @@ Get the maximum width of each column
 fn max_col_widths(rows: &[Vec<String>]) -> Vec<usize> {
     let mut r = rows[0].iter().map(|_| 0).collect::<Vec<_>>();
     for row in rows.iter() {
-        for (i, cell) in row.iter().enumerate() {
-            r[i] = r[i].max(cell.chars().collect::<Vec<_>>().len());
+        for (col, cell) in row.iter().enumerate() {
+            r[col] = r[col].max(cell.chars().collect::<Vec<_>>().len());
         }
     }
     r
@@ -96,26 +96,24 @@ fn md_table(rows: &[Vec<String>], right: &[usize]) -> String {
     let mut r = vec![];
     for (i, row) in rows.iter().enumerate() {
         let mut s = vec![];
-        for (j, cell) in row.iter().enumerate() {
-            let sep = if j == 0 { "" } else { " | " };
-            s.push(if right.contains(&j) {
-                format!("{sep}{cell:>0$}", widths[j])
+        for (col, cell) in row.iter().enumerate() {
+            s.push(if right.contains(&col) {
+                format!("| {cell:>0$} ", widths[col])
             } else {
-                format!("{sep}{cell:<0$}", widths[j])
+                format!("| {cell:<0$} ", widths[col])
             });
         }
-        r.push(format!("| {} |\n", s.join("")));
+        r.push(format!("{}|\n", s.join("")));
         if i == 0 {
             let mut s = vec![];
-            for (j, _cell) in row.iter().enumerate() {
+            for (col, _cell) in row.iter().enumerate() {
                 s.push(format!(
-                    "{}{}{}",
-                    if j == 0 { "" } else { "|-" },
-                    "-".repeat(widths[j]),
-                    if right.contains(&j) { ':' } else { '-' }
+                    "|-{}{}",
+                    "-".repeat(widths[col]),
+                    if right.contains(&col) { ':' } else { '-' }
                 ));
             }
-            r.push(format!("|-{}|\n", s.join("")));
+            r.push(format!("{}|\n", s.join("")));
         }
     }
     r.join("")
@@ -642,26 +640,26 @@ impl Class {
         let mean_pct = (mean_score as f32) / (self.total as f32) * 100.0;
         let n_students = self.students.len();
         for (description, value, percent, grade) in [
-            ("Number of students", &n_students.to_string(), "", ""),
-            ("Number of questions", &self.questions.to_string(), "", ""),
-            ("Total points", &self.total.to_string(), "", ""),
+            ("Number of students", n_students, None, None),
+            ("Number of questions", self.questions, None, None),
+            ("Total points", self.total, None, None),
             (
                 "High score",
-                &scores_keys.last().unwrap().to_string(),
-                &fmt_percent(max_pct),
-                &letter_grade(max_pct).to_string(),
+                **scores_keys.last().unwrap(),
+                Some(max_pct),
+                Some(letter_grade(max_pct)),
             ),
             (
                 "Low score",
-                &scores_keys.first().unwrap().to_string(),
-                &fmt_percent(min_pct),
-                &letter_grade(min_pct).to_string(),
+                **scores_keys.first().unwrap(),
+                Some(min_pct),
+                Some(letter_grade(min_pct)),
             ),
             (
                 "Mean score",
-                &mean_score.to_string(),
-                &fmt_percent(mean_pct),
-                &letter_grade(mean_pct).to_string(),
+                mean_score,
+                Some(mean_pct),
+                Some(letter_grade(mean_pct)),
             ),
         ] {
             stats.push(Stat::new(description, value, percent, grade));
@@ -669,9 +667,9 @@ impl Class {
         for (letter, count) in grades.histogram() {
             stats.push(Stat::new(
                 &letter.to_string(),
-                &count.to_string(),
-                &fmt_percent((count as f32) / (n_students as f32) * 100.0),
-                "",
+                count,
+                Some((count as f32) / (n_students as f32) * 100.0),
+                None,
             ));
         }
 
@@ -787,21 +785,21 @@ Individual statistic in the summary table ([`Stats`])
 */
 struct Stat {
     description: String,
-    value: String,
-    percent: String,
-    grade: String,
+    value: usize,
+    pct: Option<f32>,
+    grade: Option<char>,
 }
 
 impl Stat {
     /**
     Create a new statistic
     */
-    fn new(description: &str, value: &str, percent: &str, grade: &str) -> Stat {
+    fn new(description: &str, value: usize, pct: Option<f32>, grade: Option<char>) -> Stat {
         Stat {
             description: description.to_string(),
-            value: value.to_string(),
-            percent: percent.to_string(),
-            grade: grade.to_string(),
+            value,
+            pct,
+            grade,
         }
     }
 
@@ -811,9 +809,17 @@ impl Stat {
     fn row(&self) -> Vec<String> {
         vec![
             self.description.clone(),
-            self.value.clone(),
-            self.percent.clone(),
-            self.grade.clone(),
+            self.value.to_string(),
+            if let Some(pct) = &self.pct {
+                fmt_percent(*pct)
+            } else {
+                String::new()
+            },
+            if let Some(grade) = &self.grade {
+                grade.to_string()
+            } else {
+                String::new()
+            },
         ]
     }
 }

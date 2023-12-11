@@ -23,7 +23,7 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.3.1
+quixote 0.3.2
 ~~~
 
 # Example
@@ -186,6 +186,8 @@ Output ([`period-1.md`]):
 * 0.3.0 (2023-12-08): Change answers list to a task list; miscellaneous
   optimizations and code clean up; improved example; update dependencies
     * 0.3.1 (2023-12-08): Right align value and percent columns in summary table
+    * 0.3.2 (2023-12-11): Unstring `Stat` properties; fix markdown table
+      function; update dependencies
 
 # Reference
 

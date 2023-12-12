@@ -7,6 +7,7 @@ use rayon::prelude::*;
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
+use veg::Veg;
 
 //--------------------------------------------------------------------------------------------------
 
@@ -69,54 +70,6 @@ fn calc_stats(v: &[f32]) -> (f32, f32, f32, f32, usize) {
     let count = v.len();
     let mean = sum / (count as f32);
     (min, max, mean, sum, count)
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
-Get the maximum width of each column
-*/
-fn max_col_widths(rows: &[Vec<String>]) -> Vec<usize> {
-    let mut r = rows[0].iter().map(|_| 0).collect::<Vec<_>>();
-    for row in rows.iter() {
-        for (col, cell) in row.iter().enumerate() {
-            r[col] = r[col].max(cell.chars().collect::<Vec<_>>().len());
-        }
-    }
-    r
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
-Generate a markdown table
-*/
-fn md_table(rows: &[Vec<String>], right: &[usize]) -> String {
-    let widths = max_col_widths(rows);
-    let mut r = vec![];
-    for (i, row) in rows.iter().enumerate() {
-        let mut s = vec![];
-        for (col, cell) in row.iter().enumerate() {
-            s.push(if right.contains(&col) {
-                format!("| {cell:>0$} ", widths[col])
-            } else {
-                format!("| {cell:<0$} ", widths[col])
-            });
-        }
-        r.push(format!("{}|\n", s.join("")));
-        if i == 0 {
-            let mut s = vec![];
-            for (col, _cell) in row.iter().enumerate() {
-                s.push(format!(
-                    "|-{}{}",
-                    "-".repeat(widths[col]),
-                    if right.contains(&col) { ':' } else { '-' }
-                ));
-            }
-            r.push(format!("{}|\n", s.join("")));
-        }
-    }
-    r.join("")
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -617,7 +570,11 @@ impl Class {
         }
 
         let mut pcts = vec![];
-        let mut grades = Grades::new();
+        let mut grades_hist = LETTER_GRADES
+            .iter()
+            .map(|(_, c)| (*c, 0))
+            .collect::<BTreeMap<_, _>>();
+        let mut grades = Veg::table("Name|Score|Percent|Grade|Questions\n-|-:|-:|-|-");
         for (score, students) in scores.iter().rev() {
             let pct = (*score as f32) / (self.total as f32) * 100.0;
             let grade = letter_grade(pct);
@@ -630,10 +587,11 @@ impl Class {
                     wrongs.get(name).unwrap(),
                 ));
                 pcts.push(pct);
+                grades_hist.entry(grade).and_modify(|x| *x += 1);
             }
         }
 
-        let mut stats = Stats::new();
+        let mut stats = Veg::table("Description|Value|Percent|Grade\n-|-:|-:|-");
         let scores_keys = scores.keys().collect::<Vec<_>>();
         let (min_pct, max_pct, _mean_pct, _sum, count) = calc_stats(&pcts);
         let mean_score = ((scores_sum as f32) / (count as f32) + 0.5) as usize;
@@ -664,11 +622,11 @@ impl Class {
         ] {
             stats.push(Stat::new(description, value, percent, grade));
         }
-        for (letter, count) in grades.histogram() {
+        for (letter, count) in grades_hist.iter() {
             stats.push(Stat::new(
                 &letter.to_string(),
-                count,
-                Some((count as f32) / (n_students as f32) * 100.0),
+                *count,
+                Some((*count as f32) / (n_students as f32) * 100.0),
                 None,
             ));
         }
@@ -676,8 +634,8 @@ impl Class {
         format!(
             "# {}\n\n{}\n{}",
             self.description,
-            grades.markdown(),
-            stats.markdown()
+            grades.markdown().unwrap(),
+            stats.markdown().unwrap(),
         )
     }
 }
@@ -685,7 +643,7 @@ impl Class {
 //--------------------------------------------------------------------------------------------------
 
 /**
-Individual grade in a [`Grades`] table
+Individual grade in a grades table
 */
 struct Grade {
     name: String,
@@ -699,16 +657,18 @@ impl Grade {
     /**
     Create an individual grade
     */
-    fn new(name: &str, score: usize, pct: f32, grade: char, wrong: &[usize]) -> Grade {
-        Grade {
+    fn new(name: &str, score: usize, pct: f32, grade: char, wrong: &[usize]) -> Box<Grade> {
+        Box::new(Grade {
             name: name.to_string(),
             score,
             pct,
             grade,
             wrong: wrong.to_vec(),
-        }
+        })
     }
+}
 
+impl veg::Table for Grade {
     /**
     Generate the table row
     */
@@ -730,57 +690,6 @@ impl Grade {
 //--------------------------------------------------------------------------------------------------
 
 /**
-Grades table for a completed quiz ([`Class`])
-*/
-struct Grades {
-    grades: Vec<Grade>,
-}
-
-impl Grades {
-    /**
-    Create a new grades table
-    */
-    fn new() -> Grades {
-        Grades { grades: vec![] }
-    }
-
-    /**
-    Add an individual grade
-    */
-    fn push(&mut self, grade: Grade) {
-        self.grades.push(grade);
-    }
-
-    /**
-    Generate a markdown table
-    */
-    fn markdown(&self) -> String {
-        let mut rows = vec!["Name,Score,Percent,Grade,Questions"
-            .split(',')
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()];
-        rows.append(&mut self.grades.iter().map(|x| x.row()).collect::<Vec<_>>());
-        md_table(&rows, &[1, 2])
-    }
-
-    /**
-    Compute the histogram data
-    */
-    fn histogram(&self) -> BTreeMap<char, usize> {
-        let mut r = LETTER_GRADES
-            .iter()
-            .map(|(_, x)| (*x, 0))
-            .collect::<BTreeMap<char, usize>>();
-        for grade in &self.grades {
-            r.entry(grade.grade).and_modify(|x| *x += 1);
-        }
-        r
-    }
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
 Individual statistic in the summary table ([`Stats`])
 */
 struct Stat {
@@ -794,15 +703,17 @@ impl Stat {
     /**
     Create a new statistic
     */
-    fn new(description: &str, value: usize, pct: Option<f32>, grade: Option<char>) -> Stat {
-        Stat {
+    fn new(description: &str, value: usize, pct: Option<f32>, grade: Option<char>) -> Box<Stat> {
+        Box::new(Stat {
             description: description.to_string(),
             value,
             pct,
             grade,
-        }
+        })
     }
+}
 
+impl veg::Table for Stat {
     /**
     Generate the table row
     */
@@ -821,42 +732,5 @@ impl Stat {
                 String::new()
             },
         ]
-    }
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
-Summary table for a completed quiz ([`Class`])
-*/
-struct Stats {
-    stats: Vec<Stat>,
-}
-
-impl Stats {
-    /**
-    Create a new summary table
-    */
-    fn new() -> Stats {
-        Stats { stats: vec![] }
-    }
-
-    /**
-    Add an individual statistic
-    */
-    fn push(&mut self, stat: Stat) {
-        self.stats.push(stat);
-    }
-
-    /**
-    Generate a markdown table
-    */
-    fn markdown(&self) -> String {
-        let mut rows = vec!["Description,Value,Percent,Grade"
-            .split(',')
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()];
-        rows.append(&mut self.stats.iter().map(|x| x.row()).collect::<Vec<_>>());
-        md_table(&rows, &[1, 2])
     }
 }

@@ -11,4 +11,7 @@
     * 0.3.1 (2023-12-08): Right align value and percent columns in summary table
     * 0.3.2 (2023-12-11): Unstring `Stat` properties; fix markdown table
       function; update dependencies
+* 0.4.0 (2023-12-12): Use [`veg`] to generate markdown tables
+
+[`veg`]: https://crates.io/crates/veg
 

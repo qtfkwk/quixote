@@ -293,7 +293,7 @@ dependencies = [
 
 [[package]]
 name = "quixote"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "alpha-counter",
  "anyhow",
@@ -305,6 +305,7 @@ dependencies = [
  "rayon",
  "serde",
  "serde_json",
+ "veg",
 ]
 
 [[package]]
@@ -452,6 +453,15 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "veg"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "203de2737dfed534717fa40f4539a600b1868dc6125c7a3eae9ebbefc058f948"
+dependencies = [
+ "anyhow",
+]
 
 [[package]]
 name = "version_check"

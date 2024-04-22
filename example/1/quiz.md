@@ -1,37 +1,46 @@
-1. Which of the following vegetables were developed from *Brassica Oleracea*?
+1. Which of the following vegetables were **NOT** developed from *Brassica Oleracea*?
    Be sure to select all that apply.
 
     * [ ] A. Brussel sprouts
 
     * [ ] B. Kohlrabi
 
-    * [ ] C. Kale
+    * [ ] C. Broccoli
 
-    * [ ] D. Broccoli
+    * [ ] D. Cauliflower
 
     * [ ] E. Cabbage
 
-    * [ ] F. Cauliflower
+    * [ ] F. Kale
 
-2. $2.3 + 2.3 =$
+    * [ ] G. Lettuce
 
-    * [ ] A. $4.6$
+    * [ ] H. Spinach
 
-    * [ ] B. $5$
+2. $2 + 2 =$
 
-    * [ ] C. $3$
+    * [ ] A. $4$
 
-    * [ ] D. $4$
+    * [ ] B. $6$
 
-3. $2 - 2 =$
+    * [ ] C. $5$
 
-    * [ ] A. $1$
+    * [ ] D. $3$
 
-    * [ ] B. $2$
+3. Train A leaves the station traveling at 30 miles per hour.
+   Two hours later train В leaves the same station traveling in the same direction at 40 miles per hour.
 
-    * [ ] C. $0$
+   How far from the station was train A overtaken by train B?
 
-    * [ ] D. $4$
+    * [ ] A. 180
+
+    * [ ] B. 240
+
+    * [ ] C. 320
+
+    * [ ] D. 270
+
+    * [ ] E. 300
 
 4. Train A leaves Station A and Train B leaves Station B at the same time and travel towards each other.
    One train travels at 105 miles per hour, while the other travels at 85 miles per hour.
@@ -39,65 +48,80 @@
 
    In how long will the two trains meet?
 
-    * [ ] A. 99 mintues
+    * [ ] A. 96 minutes
 
     * [ ] B. 66 minutes
 
     * [ ] C. 86 minutes
 
-    * [ ] D. 96 minutes
+    * [ ] D. 99 mintues
 
-5. $2 + 2 =$
+5. Match each English word to its Spanish translation.
 
-    * [ ] A. $5$
+    - A. Niño
+    - B. Casa
+    - C. Niña
+    - D. Manzana
 
-    * [ ] B. $4$
+    * _____ Apple
+    * _____ Boy
+    * _____ Girl
+    * _____ House
 
-    * [ ] C. $6$
+6. $4.6 - 2.3 =$
 
-    * [ ] D. $3$
+    * [ ] A. $10$
 
-6. Which of the following vegetables were **NOT** developed from *Brassica Oleracea*?
-   Be sure to select all that apply.
+    * [ ] B. $0$
 
-    * [ ] A. Lettuce
+    * [ ] C. $2.3$
 
-    * [ ] B. Kale
+    * [ ] D. $6.9$
 
-    * [ ] C. Cauliflower
+7. Match each acronym to its correct full name.
 
-    * [ ] D. Brussel sprouts
+    - A. Hypertext Transfer Protocol
+    - B. File Transfer Protocol
+    - C. Internet Protocol
+    - D. Hypertext Markup Language
 
-    * [ ] E. Cabbage
+    * _____ IP
+    * _____ FTP
+    * _____ HTTP
+    * _____ HTML
 
-    * [ ] F. Spinach
+8. $2.3 + 2.3 =$
 
-    * [ ] G. Kohlrabi
+    * [ ] A. $4$
 
-    * [ ] H. Broccoli
+    * [ ] B. $3$
 
-7. Train A leaves the station traveling at 30 miles per hour.
-   Two hours later train В leaves the same station traveling in the same direction at 40 miles per hour.
+    * [ ] C. $4.6$
 
-   How far from the station was train A overtaken by train B?
+    * [ ] D. $5$
 
-    * [ ] A. 240
+9. $2 - 2 =$
 
-    * [ ] B. 300
+    * [ ] A. $4$
 
-    * [ ] C. 270
+    * [ ] B. $2$
 
-    * [ ] D. 320
-
-    * [ ] E. 180
-
-8. $4.6 - 2.3 =$
-
-    * [ ] A. $6.9$
-
-    * [ ] B. $2.3$
-
-    * [ ] C. $10$
+    * [ ] C. $1$
 
     * [ ] D. $0$
+
+10. Which of the following vegetables were developed from *Brassica Oleracea*?
+    Be sure to select all that apply.
+
+    * [ ] A. Kohlrabi
+
+    * [ ] B. Cauliflower
+
+    * [ ] C. Kale
+
+    * [ ] D. Cabbage
+
+    * [ ] E. Broccoli
+
+    * [ ] F. Brussel sprouts
 

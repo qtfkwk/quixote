@@ -19,6 +19,7 @@ $ quixote -V
     * [`multiple-answer.md`]
     * [`subtraction.md`]
     * [`word-problems.md`]
+    * [`match.md`]
 
 - Use multiple files to organize questions and enable generating quizzes from
   any subset.
@@ -121,6 +122,7 @@ Source: [Documentation for the `glob::Pattern` struct]
 [`multiple-answer.md`]: example/src/multiple-answer.md
 [`subtraction.md`]: example/src/subtraction.md
 [`word-problems.md`]: example/src/word-problems.md
+[`match.md`]: example/src/match.md
 [`quiz.md`]: example/1/quiz.md
 [`answers.md`]: example/1/answers.md
 [`answers.json`]: example/1/answers.json

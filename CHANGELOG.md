@@ -12,6 +12,7 @@
     * 0.3.2 (2023-12-11): Unstring `Stat` properties; fix markdown table
       function; update dependencies
 * 0.4.0 (2023-12-12): Use [`veg`] to generate markdown tables
+* 0.5.0 (2024-04-22): Add match questions; update dependencies
 
 [`veg`]: https://crates.io/crates/veg
 

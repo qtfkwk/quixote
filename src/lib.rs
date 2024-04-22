@@ -229,16 +229,11 @@ impl Question {
                 pd::Event::Start(_) => {
                     depth += 1;
                 }
-                pd::Event::End(pd::Tag::Item) => {
+                pd::Event::End(tag) => {
                     depth -= 1;
-                    if depth == 1 {
-                        answers.push(Answer::new(
-                            answer_content[(range.start + 1)..range.end].trim(),
-                        ));
+                    if depth == 1 && matches!(tag, pd::TagEnd::Item) {
+                        answers.push(Answer::new(answer_content[range.clone()].trim()));
                     }
-                }
-                pd::Event::End(_) => {
-                    depth -= 1;
                 }
                 _ => {}
             }
@@ -256,6 +251,7 @@ Quiz answer
 struct Answer {
     content: String,
     is_correct: bool,
+    correct: Option<String>,
 }
 
 impl Answer {
@@ -263,17 +259,24 @@ impl Answer {
     Create a new quiz answer
     */
     fn new(content: &str) -> Answer {
-        if (content.starts_with("**") && content.ends_with("**"))
-            || (content.starts_with("__") && content.ends_with("__"))
-        {
+        if let Some(s) = content.strip_prefix("- ") {
+            let (content, correct) = s.split_once(" => ").unwrap();
             Answer {
-                content: content[2..(content.len() - 2)].to_string(),
+                content: content.to_string(),
                 is_correct: true,
+                correct: Some(correct.to_string()),
+            }
+        } else if content.starts_with("* **") && content.ends_with("**") {
+            Answer {
+                content: content[4..(content.len() - 2)].trim().to_string(),
+                is_correct: true,
+                correct: None,
             }
         } else {
             Answer {
-                content: content.to_string(),
+                content: content[2..content.len()].trim().to_string(),
                 is_correct: false,
+                correct: None,
             }
         }
     }
@@ -284,9 +287,10 @@ impl Answer {
 /**
 Quiz
 */
+#[allow(clippy::type_complexity)]
 #[derive(Debug)]
 pub struct Quiz {
-    questions: Vec<Question>,
+    questions: Vec<(Question, Option<(String, Vec<String>)>)>,
 }
 
 impl Quiz {
@@ -308,6 +312,41 @@ impl Quiz {
                 .for_each(|x| x.answers.shuffle(&mut rng));
         }
 
+        let questions = questions
+            .into_iter()
+            .map(|x| {
+                if x.answers[0].correct.is_some() {
+                    let correct = x
+                        .answers
+                        .iter()
+                        .map(|x| x.correct.as_ref().unwrap().clone())
+                        .collect::<Vec<_>>();
+                    let mut answers = (0..correct.len()).collect::<Vec<_>>();
+                    let mut rng = thread_rng();
+                    answers.shuffle(&mut rng);
+                    let mut c = answer_counter();
+                    let answers_content = answers
+                        .iter()
+                        .map(|x| format!("    - {}. {}\n", c.next().unwrap(), &correct[*x])) // HERE
+                        .collect::<Vec<_>>()
+                        .join("");
+                    let mut c = answer_counter();
+                    let answers_letters = (0..correct.len())
+                        .map(|_| c.next().unwrap())
+                        .collect::<Vec<_>>();
+                    let mut key = (0..answers.len())
+                        .map(|_| String::from("?"))
+                        .collect::<Vec<_>>();
+                    for (i, x) in answers.iter().enumerate() {
+                        key[*x] = answers_letters[i].clone();
+                    }
+                    (x, Some((answers_content, key)))
+                } else {
+                    (x, None)
+                }
+            })
+            .collect::<Vec<_>>();
+
         Quiz { questions }
     }
 
@@ -318,23 +357,41 @@ impl Quiz {
         self.questions
             .par_iter()
             .enumerate()
-            .map(|(i, x)| {
-                let mut c = answer_counter();
-                let pre = format!("{}. ", i + 1);
-                let sep = format!("\n\n{}", " ".repeat(pre.len()));
-                format!(
-                    "{pre}{}\n\n{}",
-                    x.content
-                        .iter()
-                        .map(|x| x.replace('\n', &sep[1..]))
-                        .collect::<Vec<_>>()
-                        .join(&sep),
-                    x.answers
-                        .iter()
-                        .map(|x| format!("    * [ ] {}. {}\n\n", c.next().unwrap(), x.content))
-                        .collect::<Vec<_>>()
-                        .join("")
-                )
+            .map(|(i, (q, c))| {
+                if let Some((content, _answers)) = c {
+                    let pre = format!("{}. ", i + 1);
+                    let sep = format!("\n\n{}", " ".repeat(pre.len()));
+                    format!(
+                        "{pre}{}\n\n{content}\n{}\n",
+                        q.content
+                            .iter()
+                            .map(|x| x.replace('\n', &sep[1..]))
+                            .collect::<Vec<_>>()
+                            .join(&sep),
+                        q.answers
+                            .iter()
+                            .map(|x| format!("    * _____ {}\n", x.content))
+                            .collect::<Vec<_>>()
+                            .join("")
+                    )
+                } else {
+                    let mut c = answer_counter();
+                    let pre = format!("{}. ", i + 1);
+                    let sep = format!("\n\n{}", " ".repeat(pre.len()));
+                    format!(
+                        "{pre}{}\n\n{}",
+                        q.content
+                            .iter()
+                            .map(|x| x.replace('\n', &sep[1..]))
+                            .collect::<Vec<_>>()
+                            .join(&sep),
+                        q.answers
+                            .iter()
+                            .map(|x| format!("    * [ ] {}. {}\n\n", c.next().unwrap(), x.content))
+                            .collect::<Vec<_>>()
+                            .join("")
+                    )
+                }
             })
             .collect::<Vec<_>>()
             .join("")
@@ -362,7 +419,7 @@ This struct is used in two ways:
 */
 #[derive(Debug)]
 pub struct Answers {
-    answers: BTreeMap<usize, Vec<String>>,
+    answers: BTreeMap<usize, (Vec<String>, bool)>,
     markdown: Option<String>,
 }
 
@@ -371,26 +428,33 @@ impl Answers {
     Create a new quiz answer key
     */
     fn new(quiz: &Quiz) -> Answers {
-        let answers: BTreeMap<usize, Vec<String>> = quiz
+        let answers: BTreeMap<usize, (Vec<String>, bool)> = quiz
             .questions
             .par_iter()
             .enumerate()
-            .map(|(i, x)| {
-                let mut c = answer_counter();
-                (
-                    i + 1,
-                    x.answers
-                        .iter()
-                        .filter_map(|x| {
-                            let answer = c.next().unwrap();
-                            if x.is_correct {
-                                Some(answer)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect(),
-                )
+            .map(|(i, (q, c))| {
+                if let Some((_content, answers)) = c {
+                    (i + 1, (answers.clone(), true))
+                } else {
+                    let mut c = answer_counter();
+                    (
+                        i + 1,
+                        (
+                            q.answers
+                                .iter()
+                                .filter_map(|x| {
+                                    let answer = c.next().unwrap();
+                                    if x.is_correct {
+                                        Some(answer)
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect(),
+                            false,
+                        ),
+                    )
+                }
             })
             .collect();
 
@@ -398,32 +462,54 @@ impl Answers {
             quiz.questions
                 .par_iter()
                 .enumerate()
-                .map(|(i, x)| {
-                    let mut c = answer_counter();
-                    let n = i + 1;
-                    let pre = format!("{n}. ");
-                    let sep = format!("\n\n{}", " ".repeat(pre.len()));
-                    let ans: HashSet<_> = answers.get(&n).unwrap().iter().collect();
-                    format!(
-                        "{pre}{}\n\n{}",
-                        x.content
-                            .iter()
-                            .map(|x| x.replace('\n', &sep[1..]))
-                            .collect::<Vec<_>>()
-                            .join(&sep),
-                        x.answers
-                            .iter()
-                            .map(|x| {
-                                let letter = c.next().unwrap();
-                                if ans.contains(&letter) {
-                                    format!("    * [X] **{letter}. {}**\n\n", x.content)
-                                } else {
-                                    format!("    * [ ] {letter}. {}\n\n", x.content)
-                                }
-                            })
-                            .collect::<Vec<_>>()
-                            .join(""),
-                    )
+                .map(|(i, (q, c))| {
+                    if let Some((content, answers)) = c {
+                        let pre = format!("{}. ", i + 1);
+                        let sep = format!("\n\n{}", " ".repeat(pre.len()));
+                        format!(
+                            "{pre}{}\n\n{content}\n{}",
+                            q.content
+                                .iter()
+                                .map(|x| x.replace('\n', &sep[1..]))
+                                .collect::<Vec<_>>()
+                                .join(&sep),
+                            q.answers
+                                .iter()
+                                .enumerate()
+                                .map(|(i, x)| format!(
+                                    "    * {}: **{}**\n\n",
+                                    x.content, &answers[i]
+                                ))
+                                .collect::<Vec<_>>()
+                                .join("")
+                        )
+                    } else {
+                        let mut c = answer_counter();
+                        let n = i + 1;
+                        let pre = format!("{n}. ");
+                        let sep = format!("\n\n{}", " ".repeat(pre.len()));
+                        let ans: HashSet<_> = answers.get(&n).unwrap().0.iter().collect();
+                        format!(
+                            "{pre}{}\n\n{}",
+                            q.content
+                                .iter()
+                                .map(|x| x.replace('\n', &sep[1..]))
+                                .collect::<Vec<_>>()
+                                .join(&sep),
+                            q.answers
+                                .iter()
+                                .map(|x| {
+                                    let letter = c.next().unwrap();
+                                    if ans.contains(&letter) {
+                                        format!("    * [X] **{letter}. {}**\n\n", x.content)
+                                    } else {
+                                        format!("    * [ ] {letter}. {}\n\n", x.content)
+                                    }
+                                })
+                                .collect::<Vec<_>>()
+                                .join(""),
+                        )
+                    }
                 })
                 .collect::<Vec<_>>()
                 .join(""),
@@ -453,7 +539,7 @@ impl Answers {
     Calculate the total number of points in the quiz
     */
     fn total(&self) -> usize {
-        self.answers.values().map(|x| x.len()).sum()
+        self.answers.values().map(|x| x.0.len()).sum()
     }
 
     /**
@@ -466,7 +552,7 @@ impl Answers {
     /**
     Get the answers for a particular problem
     */
-    fn get(&self, key: &usize) -> Option<&Vec<String>> {
+    fn get(&self, key: &usize) -> Option<&(Vec<String>, bool)> {
         self.answers.get(key)
     }
 
@@ -519,9 +605,21 @@ impl Class {
             let mut wrong = BTreeSet::new();
             for (q, a) in quiz {
                 let correct = answers.get(q).unwrap();
-                if correct.len() == 1 {
+                if correct.1 {
+                    // Match
+                    for (i, x) in a.iter().enumerate() {
+                        let mut m = 0;
+                        if *x != correct.0[i] {
+                            m += 1;
+                        }
+                        if m > 0 {
+                            missed += m;
+                            wrong.insert(*q);
+                        }
+                    }
+                } else if correct.0.len() == 1 {
                     // Single answer
-                    if a != correct {
+                    if *a != correct.0 {
                         missed += 1;
                         wrong.insert(*q);
                     }
@@ -530,14 +628,14 @@ impl Class {
 
                     // Count missing correct answers
                     for answer in a {
-                        if !correct.contains(answer) {
+                        if !correct.0.contains(answer) {
                             missed += 1;
                             wrong.insert(*q);
                         }
                     }
 
                     // Count wrong answers
-                    for answer in correct {
+                    for answer in &correct.0 {
                         if !a.contains(answer) {
                             missed += 1;
                             wrong.insert(*q);

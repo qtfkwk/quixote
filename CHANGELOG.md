@@ -13,6 +13,7 @@
       function; update dependencies
 * 0.4.0 (2023-12-12): Use [`veg`] to generate markdown tables
 * 0.5.0 (2024-04-22): Add match questions; update dependencies
+    * 0.5.1 (2024-04-22): Update dependencies
 
 [`veg`]: https://crates.io/crates/veg
 

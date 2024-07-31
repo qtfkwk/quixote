@@ -238,6 +238,9 @@ impl Question {
                 _ => {}
             }
         }
+        if answers[0].content == "False" {
+            answers.reverse();
+        }
         Question { content, answers }
     }
 }
@@ -307,15 +310,18 @@ impl Quiz {
             questions.shuffle(&mut rng);
 
             // Randomize answers
-            questions
-                .iter_mut()
-                .for_each(|x| x.answers.shuffle(&mut rng));
+            questions.iter_mut().for_each(|x| {
+                if !["True", "False"].contains(&x.answers[0].content.as_str()) {
+                    x.answers.shuffle(&mut rng);
+                }
+            });
         }
 
         let questions = questions
             .into_iter()
             .map(|x| {
                 if x.answers[0].correct.is_some() {
+                    // Match question
                     let correct = x
                         .answers
                         .iter()
@@ -327,7 +333,7 @@ impl Quiz {
                     let mut c = answer_counter();
                     let answers_content = answers
                         .iter()
-                        .map(|x| format!("    - {}. {}\n", c.next().unwrap(), &correct[*x])) // HERE
+                        .map(|x| format!("    - {}. {}\n", c.next().unwrap(), &correct[*x]))
                         .collect::<Vec<_>>()
                         .join("");
                     let mut c = answer_counter();
@@ -522,8 +528,17 @@ impl Answers {
     Load from a JSON file
     */
     pub fn from(path: &Path) -> Result<Answers> {
+        let answers = match serde_json::from_str(&std::fs::read_to_string(path)?) {
+            Ok(answers) => answers,
+            Err(e) => {
+                return Err(anyhow!(format!(
+                    "Could not parse {:?}: {e}",
+                    path.display(),
+                )))
+            }
+        };
         Ok(Answers {
-            answers: serde_json::from_str(&std::fs::read_to_string(path)?)?,
+            answers,
             markdown: None,
         })
     }
@@ -589,7 +604,15 @@ impl Class {
     Load from a JSON file
     */
     pub fn from(path: &Path) -> Result<Class> {
-        let class: Class = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+        let class = match serde_json::from_str(&std::fs::read_to_string(path)?) {
+            Ok(answers) => answers,
+            Err(e) => {
+                return Err(anyhow!(format!(
+                    "Could not parse {:?}: {e}",
+                    path.display(),
+                )))
+            }
+        };
         Ok(class)
     }
 

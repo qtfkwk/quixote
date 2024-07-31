@@ -1,7 +1,59 @@
-# build
+# all
 
 * clippy
+* test
+* build
+* doc
+
+# check
+
+* outdated
+* audit
+
+# update
+
+* update-toml
+* update-lock
+
+# run
+
+* `target/release/{dirname}`
+
+```
+target/release/{dirname}
+```
+
+# clippy
+
+* `Cargo.lock`
+* `Cargo.toml`
+* `**/*.rs`
+
+```
+cargo clippy -- -D clippy::all
+```
+
+# test
+
+* `Cargo.lock`
+* `Cargo.toml`
+* `**/*.rs`
+
+```
+cargo test
+```
+
+# build
+
+* `target/release/{dirname}`
+
+# `target/release/{dirname}`
+
+* `Cargo.lock`
+* `Cargo.toml`
+* `**/*.rs`
 * `README.md`
+* `example/1/period-1.json`
 
 ```
 cargo build --release
@@ -12,7 +64,7 @@ cargo build --release
 * `t/README.md`
 * `Cargo.toml`
 * `CHANGELOG.md`
-* `src/**/*.rs`
+* `**/*.rs`
 * `example/**/*`
 
 ```
@@ -20,29 +72,45 @@ cargo build --release
 kapow {0} >{target}
 ```
 
-# clippy
+# `example/1/period-1.json`
 
 ```
-cargo clippy -- -D clippy::all
+head -3 {target} >{target}.new
+cat $(dirname {target})/answers.json |sed "s/\[\[/[/g;s/,false\]//g;s/,true\]//g" >$(dirname {target})/answers-class.json
+jq -r '.students|keys.[]' {target} |perl -e 'chomp($a=`cat \$(dirname {target})/answers-class.json`);while(<>){chomp;print "    \"$_\":$a,\n"}' >>{target}.new
+sed -i '$ s/,$//' {target}.new
+echo '  }\n}' >>{target}.new
+mv {target}.new {target}
+rm -f $(dirname {target})/answers-class.json
 ```
 
-# test
+# doc
 
 ```
-cargo test
+cargo doc
 ```
 
-# check
+# outdated
 
 ```
-cargo outdated --exit-code 1
+cargo outdated --exit-code=1
+```
+
+# audit
+
+```
 cargo audit
 ```
 
-# update
+# update-toml
 
 ```
-cargo upgrade --incompatible
+cargo upgrade -i
+```
+
+# update-lock
+
+```
 cargo update
 ```
 
@@ -57,59 +125,13 @@ cargo install --path .
 # uninstall
 
 ```
-cargo uninstall $(toml get -r Cargo.toml package.name)
+cargo uninstall {dirname}
 ```
 
 # install-deps
 
 ```
 cargo install cargo-audit cargo-edit cargo-outdated cocomo dtg kapow tokei toml-cli
-```
-
-# scaffold
-
-```bash -eo pipefail
-if ! toml get -r Cargo.toml package.description >/dev/null; then
-toml set Cargo.toml package.description "Insert a description here" >Cargo.toml.new
-mv Cargo.toml.new Cargo.toml
-echo Edit package description in Cargo.toml, then rerun \`mkrs scaffold\`.
-exit 0
-fi
-mkdir -p t
-if [ ! -e t/README.md ]; then
-NAME=$(toml get -r Cargo.toml package.name)
-ABOUT=$(toml get -r Cargo.toml package.description)
-cat <<EOF >t/README.md
-# About
-
-$ABOUT
-
-# Usage
-
-~~~text
-\$ $NAME -V
-!run:../target/release/$NAME -V 2>&1
-~~~
-
-~~~text
-\$ $NAME -h
-!run:../target/release/$NAME -h 2>&1
-~~~
-
-!inc:../CHANGELOG.md
-
-EOF
-fi
-if [ ! -e CHANGELOG.md ]; then
-VERSION=$(toml get -r Cargo.toml package.version)
-TODAY=$(dtg -n %Y-%m-%d)
-cat <<EOF >CHANGELOG.md
-# Changelog
-
-* $VERSION ($TODAY): Initial release
-
-EOF
-fi
 ```
 
 # clean
@@ -126,10 +148,18 @@ cocomo -o sloccount
 cocomo
 ```
 
+# publish
+
+```
+cargo publish
+git push
+git push --tags
+```
+
 # full
 
 * update
 * check
-* build
+* all
 * install
 

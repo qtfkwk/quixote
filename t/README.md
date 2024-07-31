@@ -20,6 +20,7 @@ $ quixote -V
     * [`subtraction.md`]
     * [`word-problems.md`]
     * [`match.md`]
+    * [`true-false.md`]
 
 - Use multiple files to organize questions and enable generating quizzes from
   any subset.

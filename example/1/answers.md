@@ -1,133 +1,145 @@
-1. Which of the following vegetables were **NOT** developed from *Brassica Oleracea*?
-   Be sure to select all that apply.
+1. $2 - 2 =$
 
-    * [ ] A. Brussel sprouts
+    * [X] **A. $0$**
 
-    * [ ] B. Kohlrabi
+    * [ ] B. $2$
 
-    * [ ] C. Broccoli
+    * [ ] C. $1$
 
-    * [ ] D. Cauliflower
+    * [ ] D. $4$
 
-    * [ ] E. Cabbage
+2. $2.3 + 2.3 =$
 
-    * [ ] F. Kale
+    * [X] **A. $4.6$**
 
-    * [X] **G. Lettuce**
+    * [ ] B. $4$
 
-    * [X] **H. Spinach**
+    * [ ] C. $3$
 
-2. $2 + 2 =$
-
-    * [X] **A. $4$**
-
-    * [ ] B. $6$
-
-    * [ ] C. $5$
-
-    * [ ] D. $3$
+    * [ ] D. $5$
 
 3. Train A leaves the station traveling at 30 miles per hour.
    Two hours later train В leaves the same station traveling in the same direction at 40 miles per hour.
 
    How far from the station was train A overtaken by train B?
 
-    * [ ] A. 180
+    * [ ] A. 300
 
-    * [X] **B. 240**
+    * [ ] B. 180
 
-    * [ ] C. 320
+    * [X] **C. 240**
 
     * [ ] D. 270
 
-    * [ ] E. 300
+    * [ ] E. 320
 
-4. Train A leaves Station A and Train B leaves Station B at the same time and travel towards each other.
+4. Is the sky blue?
+
+    * [X] **A. True**
+
+    * [ ] B. False
+
+5. Match each acronym to its correct full name.
+
+    - A. Hypertext Transfer Protocol
+    - B. Hypertext Markup Language
+    - C. File Transfer Protocol
+    - D. Internet Protocol
+
+    * IP: **D**
+
+    * HTTP: **A**
+
+    * FTP: **C**
+
+    * HTML: **B**
+
+6. Match each English word to its Spanish translation.
+
+    - A. Niña
+    - B. Niño
+    - C. Casa
+    - D. Manzana
+
+    * Apple: **D**
+
+    * Girl: **A**
+
+    * House: **C**
+
+    * Boy: **B**
+
+7. Train A leaves Station A and Train B leaves Station B at the same time and travel towards each other.
    One train travels at 105 miles per hour, while the other travels at 85 miles per hour.
    Station A and Station B are 304 miles apart.
 
    In how long will the two trains meet?
 
-    * [X] **A. 96 minutes**
+    * [ ] A. 86 minutes
 
-    * [ ] B. 66 minutes
+    * [ ] B. 99 mintues
 
-    * [ ] C. 86 minutes
+    * [X] **C. 96 minutes**
 
-    * [ ] D. 99 mintues
+    * [ ] D. 66 minutes
 
-5. Match each English word to its Spanish translation.
+8. $2 + 2 =$
 
-    - A. Niño
-    - B. Casa
-    - C. Niña
-    - D. Manzana
-
-    * Apple: **D**
-
-    * Boy: **A**
-
-    * Girl: **C**
-
-    * House: **B**
-
-6. $4.6 - 2.3 =$
-
-    * [ ] A. $10$
-
-    * [ ] B. $0$
-
-    * [X] **C. $2.3$**
-
-    * [ ] D. $6.9$
-
-7. Match each acronym to its correct full name.
-
-    - A. Hypertext Transfer Protocol
-    - B. File Transfer Protocol
-    - C. Internet Protocol
-    - D. Hypertext Markup Language
-
-    * IP: **C**
-
-    * FTP: **B**
-
-    * HTTP: **A**
-
-    * HTML: **D**
-
-8. $2.3 + 2.3 =$
-
-    * [ ] A. $4$
+    * [ ] A. $5$
 
     * [ ] B. $3$
 
-    * [X] **C. $4.6$**
+    * [ ] C. $6$
 
-    * [ ] D. $5$
+    * [X] **D. $4$**
 
-9. $2 - 2 =$
+9. Which of the following vegetables were developed from *Brassica Oleracea*?
+   Be sure to select all that apply.
 
-    * [ ] A. $4$
+    * [X] **A. Kale**
 
-    * [ ] B. $2$
+    * [X] **B. Cabbage**
 
-    * [ ] C. $1$
+    * [X] **C. Kohlrabi**
 
-    * [X] **D. $0$**
-
-10. Which of the following vegetables were developed from *Brassica Oleracea*?
-    Be sure to select all that apply.
-
-    * [X] **A. Kohlrabi**
-
-    * [X] **B. Cauliflower**
-
-    * [X] **C. Kale**
-
-    * [X] **D. Cabbage**
+    * [X] **D. Brussel sprouts**
 
     * [X] **E. Broccoli**
 
-    * [X] **F. Brussel sprouts**
+    * [X] **F. Cauliflower**
+
+10. Is the sky orange?
+
+    * [ ] A. True
+
+    * [X] **B. False**
+
+11. Which of the following vegetables were **NOT** developed from *Brassica Oleracea*?
+    Be sure to select all that apply.
+
+    * [ ] A. Broccoli
+
+    * [ ] B. Cabbage
+
+    * [X] **C. Spinach**
+
+    * [ ] D. Kohlrabi
+
+    * [ ] E. Cauliflower
+
+    * [ ] F. Kale
+
+    * [X] **G. Lettuce**
+
+    * [ ] H. Brussel sprouts
+
+12. $4.6 - 2.3 =$
+
+    * [ ] A. $0$
+
+    * [ ] B. $10$
+
+    * [ ] C. $6.9$
+
+    * [X] **D. $2.3$**
 

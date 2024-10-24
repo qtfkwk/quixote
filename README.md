@@ -23,7 +23,7 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.6.0
+quixote 0.6.1
 ~~~
 
 # Example
@@ -191,6 +191,7 @@ Output ([`period-1.md`]):
 * 0.5.0 (2024-04-22): Add match questions; update dependencies
     * 0.5.1 (2024-04-22): Update dependencies
 * 0.6.0 (2024-07-31): Order true/false answers; fix makefile; fix changelog; update dependencies
+    * 0.6.1 (2024-10-24): Update dependencies
 
 [`veg`]: https://crates.io/crates/veg
 

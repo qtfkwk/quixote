@@ -13,6 +13,7 @@
     * 0.5.1 (2024-04-22): Update dependencies
 * 0.6.0 (2024-07-31): Order true/false answers; fix makefile; fix changelog; update dependencies
     * 0.6.1 (2024-10-24): Update dependencies
+    * 0.6.2 (2024-12-04): Update dependencies; add commit target to makefile
 
 [`veg`]: https://crates.io/crates/veg
 

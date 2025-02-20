@@ -1,11 +1,13 @@
-use anyhow::{anyhow, Result};
-use clap::Parser;
-use quixote::*;
-use rayon::prelude::*;
-use std::{
-    fs::File,
-    io::{BufWriter, Write},
-    path::{Path, PathBuf},
+use {
+    anyhow::{anyhow, Result},
+    clap::Parser,
+    quixote::*,
+    rayon::prelude::*,
+    std::{
+        fs::File,
+        io::{BufWriter, Write},
+        path::{Path, PathBuf},
+    },
 };
 
 #[cfg(unix)]

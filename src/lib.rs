@@ -1,13 +1,15 @@
-use alpha_counter::AlphaCounter;
-use anyhow::{anyhow, Result};
-use glob::glob;
-use pulldown_cmark as pd;
-use rand::{seq::SliceRandom, thread_rng};
-use rayon::prelude::*;
-use serde::Deserialize;
-use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::path::{Path, PathBuf};
-use veg::Veg;
+use {
+    alpha_counter::AlphaCounter,
+    anyhow::{anyhow, Result},
+    glob::glob,
+    pulldown_cmark as pd,
+    rand::seq::SliceRandom,
+    rayon::prelude::*,
+    serde::Deserialize,
+    std::collections::{BTreeMap, BTreeSet, HashSet},
+    std::path::{Path, PathBuf},
+    veg::Veg,
+};
 
 //--------------------------------------------------------------------------------------------------
 
@@ -304,7 +306,7 @@ impl Quiz {
         let mut questions = questions.to_vec();
 
         if shuffle {
-            let mut rng = thread_rng();
+            let mut rng = rand::rng();
 
             // Randomize questions
             questions.shuffle(&mut rng);
@@ -328,7 +330,7 @@ impl Quiz {
                         .map(|x| x.correct.as_ref().unwrap().clone())
                         .collect::<Vec<_>>();
                     let mut answers = (0..correct.len()).collect::<Vec<_>>();
-                    let mut rng = thread_rng();
+                    let mut rng = rand::rng();
                     answers.shuffle(&mut rng);
                     let mut c = answer_counter();
                     let answers_content = answers

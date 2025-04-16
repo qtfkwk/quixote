@@ -1,6 +1,6 @@
 [package]
 name = "quixote"
-version = "0.6.3"
+version = "0.6.4"
 edition = "2021"
 description = "Quizzes and tests in Markdown"
 repository = "https://github.com/qtfkwk/quixote"
@@ -8,15 +8,15 @@ license = "MIT"
 
 [dependencies]
 alpha-counter = "0.2.1"
-anyhow = "1.0.96"
-clap = { version = "4.5.30", features = ["derive"] }
+anyhow = "1.0.98"
+clap = { version = "4.5.36", features = ["derive"] }
 glob = "0.3.2"
 pulldown-cmark = "0.13.0"
 rand = "0.9.0"
 rayon = "1.10.0"
-serde = { version = "1.0.218", features = ["derive"] }
-serde_json = "1.0.139"
-veg = "0.5.5"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+veg = "0.5.6"
 
 [target.'cfg(unix)'.dependencies]
 pager = "0.16.1"

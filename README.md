@@ -23,7 +23,7 @@ Options:
 
 ~~~text
 $ quixote -V
-quixote 0.7.1
+quixote 0.7.2
 ~~~
 
 # Example
@@ -197,6 +197,7 @@ Output ([`period-1.md`]):
     * 0.6.4 (2024-04-16): Update dependencies
 * 0.7.0 (2024-08-27): Update dependencies; 2024 edition
     * 0.7.1 (2024-10-27): Update dependencies; cargo fmt
+    * 0.7.2 (2024-10-27): Use `pager2`
 
 [`veg`]: https://crates.io/crates/veg
 

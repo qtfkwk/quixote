@@ -17,6 +17,7 @@
     * 0.6.3 (2025-02-20): Update dependencies; miscellaneous housekeeping
     * 0.6.4 (2024-04-16): Update dependencies
 * 0.7.0 (2024-08-27): Update dependencies; 2024 edition
+    * 0.7.1 (2024-10-27): Update dependencies; cargo fmt
 
 [`veg`]: https://crates.io/crates/veg
 

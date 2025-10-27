@@ -1,6 +1,6 @@
 use {
     alpha_counter::AlphaCounter,
-    anyhow::{anyhow, Result},
+    anyhow::{Result, anyhow},
     glob::glob,
     pulldown_cmark as pd,
     rand::seq::SliceRandom,
@@ -452,11 +452,7 @@ impl Answers {
                                 .iter()
                                 .filter_map(|x| {
                                     let answer = c.next().unwrap();
-                                    if x.is_correct {
-                                        Some(answer)
-                                    } else {
-                                        None
-                                    }
+                                    if x.is_correct { Some(answer) } else { None }
                                 })
                                 .collect(),
                             false,
@@ -536,7 +532,7 @@ impl Answers {
                 return Err(anyhow!(format!(
                     "Could not parse {:?}: {e}",
                     path.display(),
-                )))
+                )));
             }
         };
         Ok(Answers {
@@ -612,7 +608,7 @@ impl Class {
                 return Err(anyhow!(format!(
                     "Could not parse {:?}: {e}",
                     path.display(),
-                )))
+                )));
             }
         };
         Ok(class)

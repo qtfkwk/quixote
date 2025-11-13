@@ -14,16 +14,16 @@ Arguments:
   [PATH/GLOB]...  
 
 Options:
-  -q <PATH>              Generate quiz(zes)
-  -a <answers.json>      Grade quiz(zes)
-  -r                     Print readme
-  -h, --help             Print help
-  -V, --version          Print version
+  -q <PATH>          Generate quiz(zes)
+  -a <answers.json>  Grade quiz(zes)
+  -r                 Print readme
+  -h, --help         Print help
+  -V, --version      Print version
 ~~~
 
 ~~~text
 $ quixote -V
-quixote 0.7.2
+quixote 0.7.3
 ~~~
 
 # Example
@@ -198,7 +198,9 @@ Output ([`period-1.md`]):
 * 0.7.0 (2024-08-27): Update dependencies; 2024 edition
     * 0.7.1 (2024-10-27): Update dependencies; cargo fmt
     * 0.7.2 (2024-10-27): Use `pager2`
+    * 0.7.3 (2024-11-13): Update dependencies; use [`clap-cargo`] `CLAP_STYLING`; clippy fixes
 
+[`clap-cargo`]: https://crates.io/crates/clap-cargo
 [`veg`]: https://crates.io/crates/veg
 
 # Reference

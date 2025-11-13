@@ -1,9 +1,10 @@
 use {
     anyhow::{Result, anyhow},
     clap::Parser,
-    quixote::*,
+    quixote::{Answers, Bank, Class},
     rayon::prelude::*,
     std::{
+        fmt::Write as _,
         fs::File,
         io::{BufWriter, Write},
         path::{Path, PathBuf},
@@ -105,13 +106,13 @@ fn main() -> Result<()> {
             }
         })
         .collect::<Vec<_>>();
-    if quizzes.par_iter().any(|x| x.is_err()) {
+    if quizzes.par_iter().any(Result::is_err) {
         return Err(anyhow!(format!(
             "Could not use arguments as quiz directories: {}",
             quizzes
                 .iter()
                 .filter_map(|x| x.as_ref().err())
-                .map(|x| x.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(", "),
         )));
@@ -144,15 +145,16 @@ fn main() -> Result<()> {
             .par_iter()
             .map(|(filename, content)| write_file(&dir.join(filename), content))
             .collect::<Vec<_>>();
-            if files.par_iter().any(|x| x.is_err()) {
+            if files.par_iter().any(Result::is_err) {
                 return Err(anyhow!(format!(
                     "Failed to write all files:\n{}",
-                    files
-                        .iter()
-                        .filter_map(|x| x.as_ref().err())
-                        .map(|x| format!("* {x}\n"))
-                        .collect::<Vec<_>>()
-                        .join("")
+                    files.iter().filter_map(|x| x.as_ref().err()).fold(
+                        String::new(),
+                        |mut s, x| {
+                            writeln!(s, "* {x}").unwrap();
+                            s
+                        }
+                    ),
                 )));
             }
         }

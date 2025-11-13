@@ -1,13 +1,17 @@
 use {
     alpha_counter::AlphaCounter,
     anyhow::{Result, anyhow},
+    conv::ValueFrom,
     glob::glob,
     pulldown_cmark as pd,
     rand::seq::SliceRandom,
     rayon::prelude::*,
     serde::Deserialize,
-    std::collections::{BTreeMap, BTreeSet, HashSet},
-    std::path::{Path, PathBuf},
+    std::{
+        collections::{BTreeMap, BTreeSet, HashSet},
+        fmt::Write,
+        path::{Path, PathBuf},
+    },
     veg::Veg,
 };
 
@@ -70,7 +74,7 @@ fn calc_stats(v: &[f32]) -> (f32, f32, f32, f32, usize) {
         sum += i;
     }
     let count = v.len();
-    let mean = sum / (count as f32);
+    let mean = sum / f32::value_from(count).unwrap();
     (min, max, mean, sum, count)
 }
 
@@ -96,6 +100,10 @@ pub struct Bank {
 impl Bank {
     /**
     Create a new question bank from one or more paths / globs
+
+    # Errors
+
+    Returns an error if input files globs resolve to zero files
     */
     pub fn new(input_files: &[PathBuf]) -> Result<Bank> {
         // Glob out input files
@@ -109,7 +117,7 @@ impl Bank {
                 }
                 .display()
                 .to_string();
-                let globbed_files = glob(&g).unwrap().filter_map(|x| x.ok()).collect::<Vec<_>>();
+                let globbed_files = glob(&g)?.filter_map(Result::ok).collect::<Vec<_>>();
                 if globbed_files.is_empty() {
                     Err(anyhow!(format!("`{g}`")))
                 } else {
@@ -117,18 +125,18 @@ impl Bank {
                 }
             })
             .collect::<Vec<_>>();
-        if input_files.par_iter().any(|x| x.is_err()) {
+        if input_files.par_iter().any(Result::is_err) {
             return Err(anyhow!(format!(
                 "Arguments did not resolve to any files: {}!",
                 input_files
                     .iter()
                     .filter_map(|x| x.as_ref().err())
-                    .map(|x| x.to_string())
+                    .map(ToString::to_string)
                     .collect::<Vec<_>>()
                     .join(", ")
             )));
         }
-        let input_files: Vec<_> = input_files.into_iter().flat_map(|x| x.unwrap()).collect();
+        let input_files: Vec<_> = input_files.into_iter().flatten().flatten().collect();
 
         // Fail if zero input files
         if input_files.is_empty() {
@@ -175,13 +183,13 @@ impl Bank {
                 }
             })
             .collect();
-        if questions.par_iter().any(|x| x.is_err()) {
+        if questions.par_iter().any(Result::is_err) {
             Err(anyhow!(format!(
                 "Could not read files: {}!",
                 questions
                     .iter()
                     .filter_map(|x| x.as_ref().err())
-                    .map(|x| x.to_string())
+                    .map(ToString::to_string)
                     .collect::<Vec<_>>()
                     .join(", "),
             )))
@@ -189,7 +197,8 @@ impl Bank {
             Ok(Bank {
                 questions: questions
                     .iter()
-                    .flat_map(|x| x.as_ref().unwrap())
+                    .flatten()
+                    .flatten()
                     .cloned()
                     .collect::<Vec<_>>(),
             })
@@ -199,6 +208,7 @@ impl Bank {
     /**
     Generate a quiz
     */
+    #[must_use]
     pub fn quiz(&self, shuffle: bool) -> Quiz {
         Quiz::new(&self.questions, shuffle)
     }
@@ -312,11 +322,11 @@ impl Quiz {
             questions.shuffle(&mut rng);
 
             // Randomize answers
-            questions.iter_mut().for_each(|x| {
+            for x in &mut questions {
                 if !["True", "False"].contains(&x.answers[0].content.as_str()) {
                     x.answers.shuffle(&mut rng);
                 }
-            });
+            }
         }
 
         let questions = questions
@@ -333,11 +343,10 @@ impl Quiz {
                     let mut rng = rand::rng();
                     answers.shuffle(&mut rng);
                     let mut c = answer_counter();
-                    let answers_content = answers
-                        .iter()
-                        .map(|x| format!("    - {}. {}\n", c.next().unwrap(), &correct[*x]))
-                        .collect::<Vec<_>>()
-                        .join("");
+                    let answers_content = answers.iter().fold(String::new(), |mut s, x| {
+                        writeln!(s, "    - {}. {}", c.next().unwrap(), &correct[*x]).unwrap();
+                        s
+                    });
                     let mut c = answer_counter();
                     let answers_letters = (0..correct.len())
                         .map(|_| c.next().unwrap())
@@ -346,7 +355,7 @@ impl Quiz {
                         .map(|_| String::from("?"))
                         .collect::<Vec<_>>();
                     for (i, x) in answers.iter().enumerate() {
-                        key[*x] = answers_letters[i].clone();
+                        key[*x].clone_from(&answers_letters[i]);
                     }
                     (x, Some((answers_content, key)))
                 } else {
@@ -361,6 +370,8 @@ impl Quiz {
     /**
     Generate quiz markdown
     */
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
     pub fn markdown(&self) -> String {
         self.questions
             .par_iter()
@@ -376,11 +387,10 @@ impl Quiz {
                             .map(|x| x.replace('\n', &sep[1..]))
                             .collect::<Vec<_>>()
                             .join(&sep),
-                        q.answers
-                            .iter()
-                            .map(|x| format!("    * _____ {}\n", x.content))
-                            .collect::<Vec<_>>()
-                            .join("")
+                        q.answers.iter().fold(String::new(), |mut s, x| {
+                            writeln!(s, "    * _____ {}", x.content).unwrap();
+                            s
+                        }),
                     )
                 } else {
                     let mut c = answer_counter();
@@ -393,21 +403,21 @@ impl Quiz {
                             .map(|x| x.replace('\n', &sep[1..]))
                             .collect::<Vec<_>>()
                             .join(&sep),
-                        q.answers
-                            .iter()
-                            .map(|x| format!("    * [ ] {}. {}\n\n", c.next().unwrap(), x.content))
-                            .collect::<Vec<_>>()
-                            .join("")
+                        q.answers.iter().fold(String::new(), |mut s, x| {
+                            writeln!(s, "    * [ ] {}. {}\n", c.next().unwrap(), x.content)
+                                .unwrap();
+                            s
+                        }),
                     )
                 }
             })
-            .collect::<Vec<_>>()
-            .join("")
+            .collect::<String>()
     }
 
     /**
     Generate quiz [`Answers`]
     */
+    #[must_use]
     pub fn answers(&self) -> Answers {
         Answers::new(self)
     }
@@ -480,12 +490,11 @@ impl Answers {
                             q.answers
                                 .iter()
                                 .enumerate()
-                                .map(|(i, x)| format!(
-                                    "    * {}: **{}**\n\n",
-                                    x.content, &answers[i]
-                                ))
-                                .collect::<Vec<_>>()
-                                .join("")
+                                .fold(String::new(), |mut s, (i, x)| {
+                                    writeln!(s, "    * {}: **{}**\n", x.content, &answers[i])
+                                        .unwrap();
+                                    s
+                                }),
                         )
                     } else {
                         let mut c = answer_counter();
@@ -510,13 +519,11 @@ impl Answers {
                                         format!("    * [ ] {letter}. {}\n\n", x.content)
                                     }
                                 })
-                                .collect::<Vec<_>>()
-                                .join(""),
+                                .collect::<String>(),
                         )
                     }
                 })
-                .collect::<Vec<_>>()
-                .join(""),
+                .collect::<String>(),
         );
 
         Answers { answers, markdown }
@@ -524,6 +531,10 @@ impl Answers {
 
     /**
     Load from a JSON file
+
+    # Errors
+
+    Returns an error if not able to read the file at the given path and deserialize it from JSON
     */
     pub fn from(path: &Path) -> Result<Answers> {
         let answers = match serde_json::from_str(&std::fs::read_to_string(path)?) {
@@ -543,7 +554,12 @@ impl Answers {
 
     /**
     Serialize to a JSON string
+
+    # Panics
+
+    Panics if not able to serialize to a JSON string
     */
+    #[must_use]
     pub fn json(&self) -> String {
         serde_json::to_string(&self.answers).unwrap()
     }
@@ -565,13 +581,14 @@ impl Answers {
     /**
     Get the answers for a particular problem
     */
-    fn get(&self, key: &usize) -> Option<&(Vec<String>, bool)> {
-        self.answers.get(key)
+    fn get(&self, key: usize) -> Option<&(Vec<String>, bool)> {
+        self.answers.get(&key)
     }
 
     /**
     Return the Markdown content
     */
+    #[must_use]
     pub fn markdown(&self) -> &Option<String> {
         &self.markdown
     }
@@ -600,6 +617,10 @@ pub struct Class {
 impl Class {
     /**
     Load from a JSON file
+
+    # Errors
+
+    Returns an error if not able to read the file at the given path and deserialize it from JSON
     */
     pub fn from(path: &Path) -> Result<Class> {
         let class = match serde_json::from_str(&std::fs::read_to_string(path)?) {
@@ -616,6 +637,10 @@ impl Class {
 
     /**
     Compute the scores
+
+    # Panics
+
+    Panics if not able to resolve the question answers
     */
     pub fn grade(&mut self, answers: &Answers) {
         self.total = answers.total();
@@ -625,7 +650,7 @@ impl Class {
             let mut missed = 0;
             let mut wrong = BTreeSet::new();
             for (q, a) in quiz {
-                let correct = answers.get(q).unwrap();
+                let correct = answers.get(*q).unwrap();
                 if correct.1 {
                     // Match
                     for (i, x) in a.iter().enumerate() {
@@ -673,7 +698,12 @@ impl Class {
 
     /**
     Generate the grade report markdown
+
+    # Panics
+
+    Panics if not able to resolve the wrong answers
     */
+    #[must_use]
     pub fn markdown(&self) -> String {
         let mut scores: BTreeMap<usize, Vec<&str>> = BTreeMap::new();
         let mut scores_sum = 0;
@@ -695,16 +725,17 @@ impl Class {
             .collect::<BTreeMap<_, _>>();
         let mut grades = Veg::table("Name|Score|Percent|Grade|Questions\n-|-:|-:|-|-");
         for (score, students) in scores.iter().rev() {
-            let pct = (*score as f32) / (self.total as f32) * 100.0;
+            let pct =
+                f32::value_from(*score).unwrap() / f32::value_from(self.total).unwrap() * 100.0;
             let grade = letter_grade(pct);
             for name in students {
-                grades.push(Grade::new(
+                grades.push(Box::new(Grade::new(
                     name,
                     *score,
                     pct,
                     grade,
                     wrongs.get(name).unwrap(),
-                ));
+                )));
                 pcts.push(pct);
                 grades_hist.entry(grade).and_modify(|x| *x += 1);
             }
@@ -713,8 +744,11 @@ impl Class {
         let mut stats = Veg::table("Description|Value|Percent|Grade\n-|-:|-:|-");
         let scores_keys = scores.keys().collect::<Vec<_>>();
         let (min_pct, max_pct, _mean_pct, _sum, count) = calc_stats(&pcts);
-        let mean_score = ((scores_sum as f32) / (count as f32) + 0.5) as usize;
-        let mean_pct = (mean_score as f32) / (self.total as f32) * 100.0;
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let mean_score =
+            (f32::value_from(scores_sum).unwrap() / f32::value_from(count).unwrap() + 0.5) as usize;
+        let mean_pct =
+            f32::value_from(mean_score).unwrap() / f32::value_from(self.total).unwrap() * 100.0;
         let n_students = self.students.len();
         for (description, value, percent, grade) in [
             ("Number of students", n_students, None, None),
@@ -739,15 +773,17 @@ impl Class {
                 Some(letter_grade(mean_pct)),
             ),
         ] {
-            stats.push(Stat::new(description, value, percent, grade));
+            stats.push(Box::new(Stat::new(description, value, percent, grade)));
         }
-        for (letter, count) in grades_hist.iter() {
-            stats.push(Stat::new(
+        for (letter, count) in &grades_hist {
+            stats.push(Box::new(Stat::new(
                 &letter.to_string(),
                 *count,
-                Some((*count as f32) / (n_students as f32) * 100.0),
+                Some(
+                    f32::value_from(*count).unwrap() / f32::value_from(n_students).unwrap() * 100.0,
+                ),
                 None,
-            ));
+            )));
         }
 
         format!(
@@ -768,7 +804,7 @@ struct Grade {
     name: String,
     score: usize,
     pct: f32,
-    grade: char,
+    letter: char,
     wrong: Vec<usize>,
 }
 
@@ -776,14 +812,14 @@ impl Grade {
     /**
     Create an individual grade
     */
-    fn new(name: &str, score: usize, pct: f32, grade: char, wrong: &[usize]) -> Box<Grade> {
-        Box::new(Grade {
+    fn new(name: &str, score: usize, pct: f32, letter: char, wrong: &[usize]) -> Grade {
+        Grade {
             name: name.to_string(),
             score,
             pct,
-            grade,
+            letter,
             wrong: wrong.to_vec(),
-        })
+        }
     }
 }
 
@@ -796,10 +832,10 @@ impl veg::Table for Grade {
             self.name.clone(),
             self.score.to_string(),
             fmt_percent(self.pct),
-            self.grade.to_string(),
+            self.letter.to_string(),
             self.wrong
                 .iter()
-                .map(|x| x.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(", "),
         ]
@@ -822,13 +858,13 @@ impl Stat {
     /**
     Create a new statistic
     */
-    fn new(description: &str, value: usize, pct: Option<f32>, grade: Option<char>) -> Box<Stat> {
-        Box::new(Stat {
+    fn new(description: &str, value: usize, pct: Option<f32>, grade: Option<char>) -> Stat {
+        Stat {
             description: description.to_string(),
             value,
             pct,
             grade,
-        })
+        }
     }
 }
 

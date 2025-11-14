@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "alpha-counter"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cdbe3703be07fb80ae20f8678f0ab51b1333bf1f39e5ec53d3698321c356b0e2"
+checksum = "3e790e69dcacd46f2f5af17ad4976eaaab5e03a55db4d3264275cdae61a1ac71"
 
 [[package]]
 name = "anstream"
@@ -243,9 +243,9 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "pager2"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eaeafae65a76f573d4d7450ae718cee60bc9180ce213062b0dedc3837e80d24b"
+checksum = "e30d5a40a266c984e42cd1182be3fbcd13b43ee60c190f5e406bfed986e7149f"
 dependencies = [
  "errno",
  "libc",
@@ -290,7 +290,7 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 
 [[package]]
 name = "quixote"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "alpha-counter",
  "anyhow",
@@ -477,9 +477,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "veg"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "115b683f7bc2044660109808998315069df1c71a52507e880d780ceac9fe5136"
+checksum = "a81cd0f9fa3ab8787a2e6243ec41cf542485cccf119c93964f109535bca60a7a"
 dependencies = [
  "anyhow",
  "strip-ansi-escapes",

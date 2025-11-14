@@ -19,7 +19,8 @@
 * 0.7.0 (2024-08-27): Update dependencies; 2024 edition
     * 0.7.1 (2024-10-27): Update dependencies; cargo fmt
     * 0.7.2 (2024-10-27): Use `pager2`
-    * 0.7.3 (2024-11-13): Update dependencies; use [`clap-cargo`] `CLAP_STYLING`; clippy fixes
+    * 0.7.3 (2024-11-13): Update dependencies; use [`clap-cargo`] `CLAP_STYLING`; add `clippy::pedantic` to `cargo clippy` command in the `clippy` target in the makefile; clippy fixes
+    * 0.7.4 (2025-11-14): Update dependencies; fix changelog
 
 [`clap-cargo`]: https://crates.io/crates/clap-cargo
 [`veg`]: https://crates.io/crates/veg
